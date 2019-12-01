@@ -1,0 +1,14 @@
+{
+  "name": "adventofcode2019",
+  "version": "1.0.0",
+  "main": "day1.js",
+  "repository": "github.com/chrismilleruk/adventofcode2019",
+  "author": "Chris Miller <chrismilleruk@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "jest": "^24.9.0"
+  },
+  "scripts": {
+    "test": "jest"
+  }
+}
