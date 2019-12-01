@@ -1,4 +1,5 @@
 const calculateFuel = require('./day1').calculateFuel;
+const calculateFuelRecursive = require('./day1').calculateFuelRecursive;
 const processInputFile = require('./day1').processInputFile;
 
 /*
@@ -38,4 +39,24 @@ async () => {
   expect.assertions(1);
   let filename = __dirname+'/day1input.txt';
   await expect(processInputFile(filename)).resolves.toBe(3481005);
+});
+
+test('A module of mass 14 requires 2 fuel. This fuel requires no further fuel (2 divided by 3 and rounded down is 0, which would call for a negative fuel), so the total fuel required is still just 2.', () => {
+  expect(calculateFuelRecursive(14)).toBe(2);
+});
+
+test('At first, a module of mass 1969 requires 654 fuel. Then, this fuel requires 216 more fuel (654 / 3 - 2). 216 then requires 70 more fuel, which requires 21 fuel, which requires 5 fuel, which requires no further fuel. So, the total fuel required for a module of mass 1969 is 654 + 216 + 70 + 21 + 5 = 966.', () => {
+  expect(calculateFuelRecursive(1969)).toBe(966);
+});
+
+test('The fuel required by a module of mass 100756 and its fuel is: 33583 + 11192 + 3728 + 1240 + 411 + 135 + 43 + 12 + 2 = 50346.', () => {
+  expect(calculateFuelRecursive(100756)).toBe(50346);
+});
+
+
+test('What is the sum of the fuel requirements for all of the modules on your spacecraft when also taking into account the mass of the added fuel?',
+async () => {
+  expect.assertions(1);
+  let filename = __dirname+'/day1input.txt';
+  await expect(processInputFile(filename, true)).resolves.toBe(5218616);
 });
