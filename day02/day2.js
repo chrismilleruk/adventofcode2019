@@ -5,6 +5,9 @@ const filename = __dirname+'/input.txt';
 
 if (require.main === module) {
   process1202Program(filename).then(result => console.log('1202 program result', result));
+  findNounVerbInputs(filename, 19690720).then(result => {
+    console.log('complete the gravity assist', result);
+  });
 }
 
 async function* valuesToIntegers(valuesAsync) {
@@ -55,13 +58,62 @@ async function process1202Program(filename) {
   // To do this, before running the program,
   // replace position 1 with the value 12 and
   // replace position 2 with the value 2.
-  buffer[1] = 12;
-  buffer[2] = 2;
+  executeNounVerbProgram(12, 2, buffer);
+
+  // What value is left at position 0 after the program halts?
+  return buffer[0];
+}
+
+async function findNounVerbInputs(filename, expectedOutput) {
+  // "With terminology out of the way, we're ready to proceed. To complete the gravity assist, 
+  // you need to determine what pair of inputs produces the output 19690720."
+
+  input = await loadInputFile(filename);
+
+  //Each of the two input values will be between 0 and 99, inclusive.
+  for (let noun = 0; noun < 100; noun++) {
+    for (let verb = 0; verb < 100; verb++) {
+      // Copy input to temporary buffer.
+      buffer = [...input];
+
+      let output = executeNounVerbProgram(noun, verb, buffer);
+
+      if (output === expectedOutput) {
+        return { noun, verb};
+      }
+    }
+  }
+
+  throw 'not found';
+}
+
+// Memory to cache outputs from executeNounVerbProgram()
+const NounVerbCache = new Map();
+
+function executeNounVerbProgram(noun, verb, buffer) {
+  // Return cached value if we've seen this combo before.
+  let cacheKey = `${noun}_${verb}`;
+  if (NounVerbCache.has(cacheKey)){
+    return NounVerbCache.get(cacheKey);
+  } 
+
+  // The inputs should still be provided to the program by replacing the values at 
+  // addresses 1 and 2, just like before. In this program, the value placed in 
+  // address 1 is called the noun, and the value placed in address 2 is called 
+  // the verb. Each of the two input values will be between 0 and 99, inclusive.
+
+  buffer[1] = noun;
+  buffer[2] = verb;
 
   executeProgram(buffer);
 
   // What value is left at position 0 after the program halts?
-  return buffer[0];
+  const result = buffer[0];
+
+  // Cache the output
+  NounVerbCache.set(cacheKey, result)
+
+  return result;
 }
 
 function executeProgram(buffer) {
@@ -95,4 +147,4 @@ function executeCommand(buffer, pos) {
   }
 }
 
-module.exports = { executeCommand, executeProgram, loadInputFile, process1202Program };
+module.exports = { executeCommand, executeProgram, executeNounVerbProgram, findNounVerbInputs, loadInputFile, process1202Program };
