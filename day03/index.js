@@ -7,6 +7,9 @@ if (require.main === module) {
     let inputStream = createStreamFromFile(filename);
     let result = await findClosestIntersection(inputStream);
     console.log('What is the Manhattan distance from the central port to the closest intersection?', result);
+    inputStream = createStreamFromFile(filename);
+    result = await findShortestIntersection(inputStream);
+    console.log('What is the fewest combined steps the wires must take to reach an intersection?', result);
   })();
 }
 
@@ -44,8 +47,11 @@ function* generatePositions(position, instruction) {
 async function findIntersections(inputStream) {
   let eolCount = 0;
   let position = { x: 0, y: 0 };
-  let wire1 = new Set();
+  let wire1 = new Map();
   let intersections = new Set();
+
+  let w1dist = 1;
+  let w2dist = 1;
 
   for await (let token of inputStream) {
     if (token === 'EOL') {
@@ -53,16 +59,27 @@ async function findIntersections(inputStream) {
       position = { x: 0, y: 0 };
       continue;
     }
+  
 
     if (eolCount === 0) {
       // Store wire positions for 1st wire.
       for (let pos of generatePositions(position, token)) {
-        wire1.add(getKey(pos));
+        const key = getKey(pos);
+        pos.w1 = w1dist++;
+
+        wire1.set(key, pos);
       }
     } else {
       // Check wire positions for 2nd wire.
+      let distance = 1;
       for (let pos of generatePositions(position, token)) {
-        if (wire1.has(getKey(pos))) {
+        const key = getKey(pos);
+        pos.w2 = w2dist++;
+
+        if (wire1.has(key)) {
+          let w1pos = wire1.get(key);
+          pos.w1 = w1pos.w1;
+
           intersections.add(pos);
         }
       }
@@ -84,8 +101,17 @@ async function findClosestIntersection(inputStream) {
   return closest;
 }
 
+async function findShortestIntersection(inputStream) {
+  let intersections = await findIntersections(inputStream);
+  let distances = intersections.map(i => i.w1 + i.w2)
+  let shortest = distances.reduce((p, c) => Math.min(p, c));
+
+  return shortest;
+}
+
 module.exports = {
   findClosestIntersection,
+  findShortestIntersection,
   findIntersections,
   generatePositions,
   createStreamFromString,
