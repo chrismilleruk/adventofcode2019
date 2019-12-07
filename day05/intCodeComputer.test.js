@@ -7,42 +7,99 @@ describe('execute command', () => {
     expect(() => {
       executeCommand([13]);
     }).toThrow();
-  })
+  });
 
   describe('opcode 1: add', () => {
-    test('add 1,0,0,3', () => {
+    test('add 1,0,0,3 -> 1(add): pos[0]>(1) + pos[0]>(1) = (2)>pos[3]', () => {
       let buffer = [1, 0, 0, 3];
-      let result = executeCommand(buffer, 0);
+      let size = executeCommand(buffer, 0);
 
-      expect(result).toBe(4);
+      expect(size).toBe(4);
       expect(buffer).toEqual([1, 0, 0, 2]);
     });
 
-    test('add 1,4,5,6,99,1,0', () => {
+    test('add 1,4,5,6,99,1,0 -> 1(add): pos[4]>(99) + pos[5]>(1) = (100)>pos[6]', () => {
       let buffer = [1, 4, 5, 6, 99, 1, 0];
-      let result = executeCommand(buffer, 0);
+      let size = executeCommand(buffer, 0);
 
-      expect(result).toBe(4);
+      expect(size).toBe(4);
       expect(buffer).toEqual([1, 4, 5, 6, 99, 1, 100]);
+    });
+
+    test('add 101,20,0,3 -> 1(add): imm(20) + pos[0]>(101) = (121)>pos[3]', () => {
+      let buffer = [101, 20, 0, 3];
+      let size = executeCommand(buffer, 0);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([101, 20, 0, 121]);
+    });
+
+    test('add 101,4,5,6,99,1,0 -> 1(add): imm(4) + pos[5]>(1) = (5)>pos[6]', () => {
+      let buffer = [101, 4, 5, 6, 99, 1, 0];
+      let size = executeCommand(buffer, 0);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([101, 4, 5, 6, 99, 1, 5]);
+    });
+
+    test('add 1001,4,5,6,99,1,0 -> 1(add): pos[4]>(99) + imm(5) = (104)>pos[6]', () => {
+      let buffer = [1001, 4, 5, 6, 99, 1, 0];
+      let size = executeCommand(buffer, 0);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([1001, 4, 5, 6, 99, 1, 104]);
+    });
+
+    test('add 1101,4,5,6,99,1,0 -> 1(add): imm(4) + imm(5) = (9)>pos[6]', () => {
+      let buffer = [1101, 4, 5, 6, 99, 1, 0];
+      let size = executeCommand(buffer, 0);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([1101, 4, 5, 6, 99, 1, 9]);
     });
   });
 
   describe('opcode 2: multiply', () => {
-    test('multiply 2,3,4,5,99 - 5 * 99 ', () => {
+    test('multiply 2,3,4,5,99 -> 2(multiply): pos[3]>(5) * pos[4]>(99) = (495)>pos[5]', () => {
       let buffer = [2, 3, 4, 5, 99];
-      let result = executeCommand(buffer);
+      let size = executeCommand(buffer);
 
-      expect(result).toBe(4);
+      expect(size).toBe(4);
       expect(buffer).toEqual([2, 3, 4, 5, 99, 495]);
-    })
-    test('multiply 2,5,6,7,99,3,4,0 - 3 * 4', () => {
-      let buffer = [2, 5, 6, 7, 99, 3, 4, 0];
-      let result = executeCommand(buffer);
+    });
 
-      expect(result).toBe(4);
+    test('multiply 2,5,6,7,99,3,4,0 -> 2(multiply): pos[5]>(3) * pos[6]>(4) = (12)>pos[7]', () => {
+      let buffer = [2, 5, 6, 7, 99, 3, 4, 0];
+      let size = executeCommand(buffer);
+
+      expect(size).toBe(4);
       expect(buffer).toEqual([2, 5, 6, 7, 99, 3, 4, 12]);
-    })
-  })
+    });
+
+    test('multiply 102,5,6,7,99,3,4,0 -> 2(multiply): imm(5) * pos[6]>(4) = (20)>pos[7]', () => {
+      let buffer = [102, 5, 6, 7, 99, 3, 4, 0];
+      let size = executeCommand(buffer);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([102, 5, 6, 7, 99, 3, 4, 20]);
+    });
+
+    test('multiply 1002,5,6,7,99,3,4,0 -> 2(multiply): pos[5]>(3) * imm(6) = (18)>pos[7]', () => {
+      let buffer = [1002, 5, 6, 7, 99, 3, 4, 0];
+      let size = executeCommand(buffer);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([1002, 5, 6, 7, 99, 3, 4, 18]);
+    });
+
+    test('multiply 1102,5,6,7,99,3,4,0 -> 2(multiply): imm(5) * imm(6) = (30)>pos[7]', () => {
+      let buffer = [1102, 5, 6, 7, 99, 3, 4, 0];
+      let size = executeCommand(buffer);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([1102, 5, 6, 7, 99, 3, 4, 30]);
+    });
+  });
 
   describe('opcode 3: input', () => {
     // Opcode 3 takes a single integer as input and saves it to the position given by its only parameter. 
@@ -50,9 +107,9 @@ describe('execute command', () => {
     test('input 3,1,99 ', () => {
       let buffer = [3, 1, 99];
       let input = jest.fn(() => 3333);
-      let result = executeCommand(buffer, 0, input);
+      let size = executeCommand(buffer, 0, input);
 
-      expect(result).toBe(2);
+      expect(size).toBe(2);
       expect(buffer).toEqual([3, 3333, 99]);
       expect(input).toHaveBeenCalled();
     });
@@ -60,9 +117,9 @@ describe('execute command', () => {
     test('input 3,3,99,0', () => {
       let buffer = [3, 3, 99, 0];
       let input = jest.fn(() => 3333);
-      let result = executeCommand(buffer, 0, input);
+      let size = executeCommand(buffer, 0, input);
 
-      expect(result).toBe(2);
+      expect(size).toBe(2);
       expect(buffer).toEqual([3, 3, 99, 3333]);
       expect(input).toHaveBeenCalled();
     });
@@ -71,28 +128,83 @@ describe('execute command', () => {
   describe('opcode 4: output', () => {
     // Opcode 4 outputs the value of its only parameter. 
     // For example, the instruction 4,50 would output the value at address 50.
-    test('output 4,2,99 ', () => {
+    test('output 4,2,99 -> 4(output): pos[2](99)', () => {
       let buffer = [4, 2, 99];
       let input = jest.fn(() => 3333);
       let output = jest.fn();
-      let result = executeCommand(buffer, 0, input, output);
+      let size = executeCommand(buffer, 0, input, output);
 
-      expect(result).toBe(2);
+      expect(size).toBe(2);
       expect(buffer).toEqual([4, 2, 99]);
       expect(output).toHaveBeenCalledWith(99);
     });
 
-    test('input 3,3,99,0', () => {
+    test('output 4,3,99,4444 -> 4(output): pos[3](4444)', () => {
       let buffer = [4, 3, 99, 4444];
       let input = jest.fn(() => 3333);
       let output = jest.fn();
-      let result = executeCommand(buffer, 0, input, output);
+      let size = executeCommand(buffer, 0, input, output);
 
-      expect(result).toBe(2);
+      expect(size).toBe(2);
       expect(buffer).toEqual([4, 3, 99, 4444]);
       expect(output).toHaveBeenCalledWith(4444);
     });
-  })
+
+    test('output 104,2,99 -> 4(output): imm[2](2)', () => {
+      let buffer = [104, 2, 99];
+      let input = jest.fn(() => 3333);
+      let output = jest.fn();
+      let size = executeCommand(buffer, 0, input, output);
+
+      expect(size).toBe(2);
+      expect(buffer).toEqual([104, 2, 99]);
+      expect(output).toHaveBeenCalledWith(2);
+    });
+
+    test('output 104,3,99,4444 -> 4(output): imm[3](3)', () => {
+      let buffer = [104, 3, 99, 4444];
+      let input = jest.fn(() => 3333);
+      let output = jest.fn();
+      let size = executeCommand(buffer, 0, input, output);
+
+      expect(size).toBe(2);
+      expect(buffer).toEqual([104, 3, 99, 4444]);
+      expect(output).toHaveBeenCalledWith(3);
+    });
+  });
+
+  describe('parameter modes', () => {
+    // Each parameter of an instruction is handled based on its parameter mode. 
+    // Parameter mode 0, position mode, causes the parameter to be interpreted as a position
+    // - if the parameter is 50, its value is the value stored at address 50 in memory. 
+    // Parameter mode 1, immediate mode, a parameter is interpreted as a value
+    // - if the parameter is 50, its value is simply 50.
+
+    // Example:   ABCDE
+    //             1002
+    //   DE - two-digit opcode,      02 == opcode 2
+    //   C - mode of 1st parameter,  0 == position mode
+    //   B - mode of 2nd parameter,  1 == immediate mode
+    //   A - mode of 3rd parameter,  0 == position mode,
+    //                                     omitted due to being a leading zero
+    test('example 1002,4,3,4,33 -> 2(multiply): pos[4]>(33) * imm(3) = (99)>pos[4]', () => {
+      let buffer = [1002, 4, 3, 4, 33];
+      let size = executeCommand(buffer, 0);
+      // 2(multiply): pos[4]>(33) * imm[3]>(3) = (99)>pos[4]
+      expect(size).toBe(4);
+      expect(buffer).toEqual([1002, 4, 3, 4, 99]);
+    });
+
+    // Integers can be negative: 1101,100,-1,4,0 is a valid program 
+    // (find 100 + -1, store the result in position 4).
+    test('example 1101,100,-1,4,0 -> 1(add): imm(100) + imm(-1) = (99)>pos[4]', () => {
+      let buffer = [1101, 100, -1, 4, 0];
+      let size = executeCommand(buffer, 0);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([1101, 100, -1, 4, 99]);
+    })
+  });
 
   describe('opcode 99: stop', () => {
     test('stop 1,4,5,6,*>99,1,0', () => {
@@ -102,7 +214,7 @@ describe('execute command', () => {
       expect(result).toBe(false);
       expect(buffer).toEqual([1, 4, 5, 6, 99, 1, 0]);
     });
-  })
+  });
 });
 
 describe('executeProgram', () => {

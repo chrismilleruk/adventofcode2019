@@ -49,19 +49,48 @@ function executeProgram(buffer, inputFn, outputFn) {
 }
 
 function executeCommand(buffer, pos, inputFn, outputFn) {
-  let [command, val1, val2, result] = buffer.slice(pos);
-  switch (command) {
+  let [command, ...parameters] = buffer.slice(pos);
+  // Opcode is last two digits of command
+  let opcode = command % 100;
+  // Parameters that an instruction writes to will never be in immediate mode so we need direct access
+  let [p1, p2, p3, p4] = parameters;
+  let parameterModes = [...new String(command)].reverse();
+
+  // Read parameters accounting for parameter mode.
+  function getVal(position) {
+    // Example:   ABCDE
+    //             1002
+    //   DE - two-digit opcode,      02 == opcode 2
+    //   C - mode of 1st parameter,  0 == position mode
+    //   B - mode of 2nd parameter,  1 == immediate mode
+    //   A - mode of 3rd parameter,  0 == position mode,
+    //                                     omitted due to being a leading zero
+    let parameterMode = parameterModes[position + 1] === '1' ? 1 : 0;
+    let parameterVal = parameters[position - 1]; // position 1 == index 0;
+
+    if (parameterMode === 0) {
+      // Parameter mode 0, position mode, causes the parameter to be interpreted as a position
+      // - if the parameter is 50, its value is the value stored at address 50 in memory. 
+      return buffer[parameterVal];
+    } else {
+      // Parameter mode 1, immediate mode, a parameter is interpreted as a value
+      // - if the parameter is 50, its value is simply 50.
+      return parameterVal;
+    }
+  }
+
+  switch (opcode) {
     case 1: // add
-      buffer[result] = buffer[val1] + buffer[val2];
+      buffer[p3] = getVal(1) + getVal(2);
       return 4;
     case 2: // multiply
-      buffer[result] = buffer[val1] * buffer[val2];
+      buffer[p3] = getVal(1) * getVal(2);
       return 4;
     case 3: // input
-      buffer[val1] = inputFn();
+      buffer[p1] = inputFn();
       return 2;
     case 4: // output
-      outputFn(buffer[val1]);
+      outputFn(getVal(1));
       return 2;
     case 99:
       return false;
