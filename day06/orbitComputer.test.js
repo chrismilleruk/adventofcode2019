@@ -5,7 +5,7 @@ const {
 const {
   getOrbitChecksum,
   buildOrbitMap,
-  loadInputFile
+  shortestDistanceBetweenPlanets
 } = require('./orbitComputer')
 
 describe('Day 6: Universal Orbit Map', () => {
@@ -35,6 +35,14 @@ K)L`;
       let checksum = getOrbitChecksum(orbitMap);
 
       expect(checksum).toBe(42);
+    });
+    test('shortest distance between two planets', async () => {
+      let inputStream = createStreamFromString(mapData);
+      let orbitMap = await buildOrbitMap(inputStream);
+      let start = orbitMap.get('H');
+      let destination = orbitMap.get('I');
+      let distance = shortestDistanceBetweenPlanets(start, destination);
+      expect(distance).toBe(3);
     });
   })
 

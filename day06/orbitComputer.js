@@ -88,9 +88,23 @@ function recursePlanets(node) {
   return count;
 }
 
+function shortestDistanceBetweenPlanets(start, dest) {
+  // find common ancestor
+  let startParents = Array.from(start.parents(), x => x.name).reverse();
+  let destParents = Array.from(dest.parents(), x => x.name).reverse();
+
+  while (startParents[0] == destParents[0]) {
+    startParents.shift();
+    destParents.shift();
+  }
+  // startParents;
+  // destParents;
+  return startParents.length + destParents.length;
+}
 
 module.exports = {
   getOrbitChecksum,
+  shortestDistanceBetweenPlanets,
   buildOrbitMap,
   loadInputFile,
   Planet
