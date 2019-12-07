@@ -142,7 +142,7 @@ describe('loadInputFile() and process1202Program()', () => {
 /*
 "With terminology out of the way, we're ready to proceed. To complete the gravity assist, you need to determine what pair of inputs produces the output 19690720."
 */
-describe('find noun verb inputs', () => {
+describe.skip('find noun verb inputs', () => {
 
   test('find 12 02 for 3716293', async () => {
     let {noun, verb} = await findNounVerbInputs(filename, 3716293);

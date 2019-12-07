@@ -67,8 +67,6 @@ function testPasswordScheme2(password) {
 
     state = { val: current, len };
 
-    state/*?*/
-    
     return state;
   }, { val: '', len: 0 });
 
@@ -105,8 +103,7 @@ function* findValidPasswords(start, end, testPasswordFn = testPasswordScheme1) {
 function countValidPasswords(start, end, testPasswordFn = testPasswordScheme1) {
   let count = 0;
   for (let password of findValidPasswords(start, end, testPasswordFn)) {
-    password;
-      count ++;
+    count ++;
   }
   return count;
 }
