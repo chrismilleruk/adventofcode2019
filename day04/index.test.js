@@ -1,10 +1,11 @@
 const {
-  testPassword,
+  testPasswordScheme1,
+  testPasswordScheme2,
   countValidPasswords
 } = require('./');
 
 describe('Day 4: Secure Container', () => {
-  describe('test password', () => {
+  describe('test password scheme 1', () => {
     // It is a six-digit number.
     // The value is within the range given in your puzzle input.
     // Two adjacent digits are the same (like 22 in 122345).
@@ -12,17 +13,34 @@ describe('Day 4: Secure Container', () => {
 
     // 111111 meets these criteria (double 11, never decreases).
     test('111111 meets these criteria (double 11, never decreases).', () => {
-      expect(testPassword('111111')).toBe(true);
+      expect(testPasswordScheme1('111111')).toBe(true);
     })
 
     // 223450 does not meet these criteria (decreasing pair of digits 50).
     test('223450 does not meet these criteria (decreasing pair of digits 50).', () => {
-      expect(testPassword('223450')).toBe(false);
+      expect(testPasswordScheme1('223450')).toBe(false);
     })
 
     // 123789 does not meet these criteria (no double).
     test('123789 does not meet these criteria (no double).', () => {
-      expect(testPassword('123789')).toBe(false);
+      expect(testPasswordScheme1('123789')).toBe(false);
+    })
+  });
+
+  describe('test password scheme 2', () => {
+    // 112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+    test('112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.', () => {
+      expect(testPasswordScheme2('112233')).toBe(true);
+    }) 
+
+    // 123444 no longer meets the criteria (the repeated 44 is part of a larger group of 444).
+    test('123444 no longer meets the criteria (the repeated 44 is part of a larger group of 444).', () => {
+      expect(testPasswordScheme2('123444')).toBe(false);
+    })
+
+    // 111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22).
+    test('111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22).', () => {
+      expect(testPasswordScheme2('111122')).toBe(true);
     })
   });
 
@@ -38,10 +56,20 @@ describe('Day 4: Secure Container', () => {
     test.skip('large extents', () => {
       expect(countValidPasswords('900000', '999999')).toBe(1);
     });
+  });
 
-    test.skip('puzzle input 353096-843212', () => {
-      const numValid = countValidPasswords('353096', '843212');
+  describe.skip('puzzle questions', () => {
+
+    test('puzzle input 353096-843212, part1', () => {
+      const numValid = countValidPasswords('353096', '843212', testPasswordScheme1);
       expect(numValid).toBe(579);
     })
-  })
+
+    test('puzzle input 353096-843212, part2', () => {
+      // How many different passwords within the range given in your puzzle input meet all of the criteria?
+      const numValid = countValidPasswords('353096', '843212', testPasswordScheme2);
+      expect(numValid).toBe(358);
+    })
+
+  });
 })
