@@ -44,7 +44,7 @@ describe('execute command', () => {
     })
   })
 
-  describe.skip('opcode 3: input', () => {
+  describe('opcode 3: input', () => {
     // Opcode 3 takes a single integer as input and saves it to the position given by its only parameter. 
     // For example, the instruction 3,50 would take an input value and store it at address 50.
     test('input 3,1,99 ', () => {
@@ -68,7 +68,7 @@ describe('execute command', () => {
     });
   });
 
-  describe.skip('opcode 4: output', () => {
+  describe('opcode 4: output', () => {
     // Opcode 4 outputs the value of its only parameter. 
     // For example, the instruction 4,50 would output the value at address 50.
     test('output 4,2,99 ', () => {
@@ -165,13 +165,15 @@ describe('executeProgram', () => {
   // Programs that use these instructions will come with documentation that explains what should be 
   // connected to the input and output. 
   // The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
-  test.skip('input output 3,0,4,0,99', () => {
+  test('input output 3,0,4,0,99', () => {
     let buffer = [3, 0, 4, 0, 99];
     let input = jest.fn(() => 7777);
     let output = jest.fn();
-    let result = executeProgram(buffer, input, output);
+    executeProgram(buffer, input, output);
 
-    expect(result).toBe(2);
     expect(buffer).toEqual([7777, 0, 4, 0, 99]);
+    expect(input).toHaveBeenCalledTimes(1);
+    expect(output).toHaveBeenCalledTimes(1);
+    expect(output).toHaveBeenCalledWith(7777);
   });
 });

@@ -33,12 +33,12 @@ function executeNounVerbProgram(noun, verb, buffer) {
   return buffer[0];;
 }
 
-function executeProgram(buffer) {
+function executeProgram(buffer, inputFn, outputFn) {
   // The address of the current instruction is called the instruction pointer; it starts at 0. 
   let pointer = 0;
   let step;
 
-  while (step = executeCommand(buffer, pointer)) {
+  while (step = executeCommand(buffer, pointer, inputFn, outputFn)) {
     // Once you're done processing an opcode, move to the next one by stepping forward 4 positions.
     // After an instruction finishes, the instruction pointer increases by the number of values in 
     // the instruction; until you add more instructions to the computer, this is always 4 
@@ -48,7 +48,7 @@ function executeProgram(buffer) {
   }
 }
 
-function executeCommand(buffer, pos) {
+function executeCommand(buffer, pos, inputFn, outputFn) {
   let [command, val1, val2, result] = buffer.slice(pos);
   switch (command) {
     case 1: // add
@@ -57,6 +57,12 @@ function executeCommand(buffer, pos) {
     case 2: // multiply
       buffer[result] = buffer[val1] * buffer[val2];
       return 4;
+    case 3: // input
+      buffer[val1] = inputFn();
+      return 2;
+    case 4: // output
+      outputFn(buffer[val1]);
+      return 2;
     case 99:
       return false;
     default:
