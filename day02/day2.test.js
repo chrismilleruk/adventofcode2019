@@ -163,7 +163,7 @@ describe('find noun verb inputs', () => {
   });
 
   describe('complete the gravity assist', () => {
-    test('find 64 29 for 19690720', async () => {
+    test.skip('find 64 29 for 19690720', async () => {
       let {noun, verb} = await findNounVerbInputs(filename, 19690720);
       expect(noun).toBe(64);
       expect(verb).toBe(29);

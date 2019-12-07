@@ -198,7 +198,7 @@ describe('Day 3: Crossed Wires', () => {
       ]);
     });
 
-    test('What is the Manhattan distance from the central port to the closest intersection?', async () => {
+    test.skip('What is the Manhattan distance from the central port to the closest intersection?', async () => {
       expect.assertions(1);
 
       let inputStream = createStreamFromFile(filename);
@@ -207,7 +207,7 @@ describe('Day 3: Crossed Wires', () => {
       expect(result).toBe(207);
     });
 
-    test('What is the fewest combined steps the wires must take to reach an intersection?', async () => {
+    test.skip('What is the fewest combined steps the wires must take to reach an intersection?', async () => {
       expect.assertions(1);
 
       let inputStream = createStreamFromFile(filename);
