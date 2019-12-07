@@ -12,14 +12,17 @@ if (require.main === module) {
 
     function inputFn() {
       let input = readline.question("Diagnostic System ID: ");
-      console.log(input);
       return parseInt(input, 10);
     }
     function outputFn(val) {
       console.log(val);
     }
 
-    executeProgram(buffer, inputFn, outputFn);
+    try {
+      executeProgram(buffer, inputFn, outputFn);
+    } catch (ex) {
+      console.error(ex);
+    }
 
   })();
 }
