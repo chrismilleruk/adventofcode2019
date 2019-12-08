@@ -12,13 +12,15 @@ describe('Amplifier Controller Software', () => {
       const phaseSettingSequence = [4, 3, 2, 1, 0];
       const maxThrusterSignal = 43210;
 
-      test('Test optimal settings', () => {
-        const result = runAmplifySequence(buffer.slice(), phaseSettingSequence);
+      test('Test optimal settings', async () => {
+        expect.assertions(1);
+        const result = await runAmplifySequence(buffer.slice(), phaseSettingSequence);
         expect(result).toBe(maxThrusterSignal);
       });
 
-      test('Find best settings', () => {
-        const result = findMaxAmplifySequence(buffer);
+      test('Find best settings', async () => {
+        expect.assertions(2);
+        const result = await findMaxAmplifySequence(buffer);
         expect(result.sequence).toStrictEqual(phaseSettingSequence);
         expect(result.max).toBe(maxThrusterSignal);
       })
@@ -30,13 +32,15 @@ describe('Amplifier Controller Software', () => {
       const phaseSettingSequence = [0, 1, 2, 3, 4];
       const maxThrusterSignal = 54321;
 
-      test('Test optimal settings', () => {
-        const result = runAmplifySequence(buffer.slice(), phaseSettingSequence);
+      test('Test optimal settings', async () => {
+        expect.assertions(1);
+        const result = await runAmplifySequence(buffer.slice(), phaseSettingSequence);
         expect(result).toBe(maxThrusterSignal);
       });
 
-      test('Find best settings', () => {
-        const result = findMaxAmplifySequence(buffer);
+      test('Find best settings', async () => {
+        expect.assertions(2);
+        const result = await findMaxAmplifySequence(buffer);
         expect(result.sequence).toStrictEqual(phaseSettingSequence);
         expect(result.max).toBe(maxThrusterSignal);
       })
@@ -48,13 +52,15 @@ describe('Amplifier Controller Software', () => {
       const phaseSettingSequence = [1, 0, 4, 3, 2];
       const maxThrusterSignal = 65210;
 
-      test('Test optimal settings', () => {
-        const result = runAmplifySequence(buffer.slice(), phaseSettingSequence);
+      test('Test optimal settings', async () => {
+        expect.assertions(1);
+        const result = await runAmplifySequence(buffer.slice(), phaseSettingSequence);
         expect(result).toBe(maxThrusterSignal);
       });
 
-      test('Find best settings', () => {
-        const result = findMaxAmplifySequence(buffer);
+      test('Find best settings', async () => {
+        expect.assertions(2);
+        const result = await findMaxAmplifySequence(buffer);
         expect(result.sequence).toStrictEqual(phaseSettingSequence);
         expect(result.max).toBe(maxThrusterSignal);
       })
@@ -73,13 +79,14 @@ describe('Amplifier Controller Software', () => {
       const phaseSettingSequence = [9, 8, 7, 6, 5];
       const maxThrusterSignal = 139629729;
 
-      test('Test optimal settings', () => {
-        const result = runAmplifySequenceWithFeedback(buffer.slice(), phaseSettingSequence);
+      test('Test optimal settings', async () => {
+        const result = await runAmplifySequenceWithFeedback(buffer.slice(), phaseSettingSequence);
         expect(result).toBe(maxThrusterSignal);
       });
 
-      test('Find best settings', () => {
-        const result = findMaxAmplifySequenceWithFeedback(buffer);
+      test('Find best settings', async () => {
+        expect.assertions(1);
+        const result = await findMaxAmplifySequenceWithFeedback(buffer);
         expect(result.sequence).toStrictEqual(phaseSettingSequence);
         expect(result.max).toBe(maxThrusterSignal);
       })
@@ -100,13 +107,13 @@ describe('Amplifier Controller Software', () => {
       const phaseSettingSequence = [9, 8, 7, 6, 5];
       const maxThrusterSignal = 139629729;
 
-      test('Test optimal settings', () => {
-        const result = runAmplifySequenceWithFeedback(buffer.slice(), phaseSettingSequence);
+      test('Test optimal settings', async () => {
+        const result = await runAmplifySequenceWithFeedback(buffer.slice(), phaseSettingSequence);
         expect(result).toBe(maxThrusterSignal);
       });
 
-      test('Find best settings', () => {
-        const result = findMaxAmplifySequenceWithFeedback(buffer);
+      test('Find best settings', async () => {
+        const result = await findMaxAmplifySequenceWithFeedback(buffer);
         expect(result.sequence).toStrictEqual(phaseSettingSequence);
         expect(result.max).toBe(maxThrusterSignal);
       })

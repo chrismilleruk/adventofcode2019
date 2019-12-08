@@ -1,12 +1,10 @@
 
 const {
-  executeProgram,
-  loadInputFile
+  executeProgram
 } = require('./intCodeComputer');
 
 
-
-function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
+async function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
   let signalStrength = 0;
 
   let inputGen = inputGenerator(phaseSequence.slice());
@@ -18,11 +16,11 @@ function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
   }
 
   try {
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
     return signalStrength;
   } catch (ex) {
     console.error(ex);
@@ -43,7 +41,20 @@ function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
   }
 }
 
-function runAmplifySequence(buffer, phaseSequence) {
+async function findMaxAmplifySequenceWithFeedback(buffer) {
+  let max = 0;
+  let sequence;
+  for (const phaseSequence of phaseSequencePermutations([5,6,7,8,9])) {
+    let result = await runAmplifySequenceWithFeedback(buffer, phaseSequence);
+    if (result > max) {
+      max = result;
+      sequence = phaseSequence;
+    }
+  }
+  return { max, sequence };
+}
+
+async function runAmplifySequence(buffer, phaseSequence) {
   let signalStrength = 0;
   let inputGen = gen(phaseSequence.slice());
 
@@ -59,11 +70,11 @@ function runAmplifySequence(buffer, phaseSequence) {
   }
 
   try {
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputFn, outputFn);
     return signalStrength;
   } catch (ex) {
     console.error(ex);
@@ -101,24 +112,11 @@ function runAmplifySequence(buffer, phaseSequence) {
   }
 }
 
-function findMaxAmplifySequence(buffer) {
+async function findMaxAmplifySequence(buffer) {
   let max = 0;
   let sequence;
   for (const phaseSequence of phaseSequencePermutations([0,1,2,3,4])) {
-    let result = runAmplifySequence(buffer, phaseSequence);
-    if (result > max) {
-      max = result;
-      sequence = phaseSequence;
-    }
-  }
-  return { max, sequence };
-}
-
-function findMaxAmplifySequenceWithFeedback(buffer) {
-  let max = 0;
-  let sequence;
-  for (const phaseSequence of phaseSequencePermutations([5,6,7,8,9])) {
-    let result = runAmplifySequenceWithFeedback(buffer, phaseSequence);
+    let result = await runAmplifySequence(buffer, phaseSequence);
     if (result > max) {
       max = result;
       sequence = phaseSequence;

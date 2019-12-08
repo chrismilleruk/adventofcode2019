@@ -1,56 +1,65 @@
 const { executeCommand, executeProgram, executeNounVerbProgram } = require('./intCodeComputer');
 
 describe('execute command', () => {
-  test('Encountering an unknown opcode means something went wrong.', () => {
-    expect(() => {
-      executeCommand([13]);
-    }).toThrow();
+  test('Encountering an unknown opcode means something went wrong.', async () => {
+    expect.assertions(1);
+    try {
+      await executeCommand([13], 0)
+    } catch (e) {
+      expect(e).toBe("unknown command 13 at pos 0");
+    }
   });
 
   describe('opcode 1: add', () => {
-    test('add 1,0,0,3 -> 1(add): pos[0]>(1) + pos[0]>(1) = (2)>pos[3]', () => {
+    test('add 1,0,0,3 -> 1(add): pos[0]>(1) + pos[0]>(1) = (2)>pos[3]', async () => {
+      expect.assertions(2);
       let buffer = [1, 0, 0, 3];
-      let size = executeCommand(buffer, 0);
+      let size = await executeCommand(buffer, 0);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([1, 0, 0, 2]);
     });
 
-    test('add 1,4,5,6,99,1,0 -> 1(add): pos[4]>(99) + pos[5]>(1) = (100)>pos[6]', () => {
+    test('add 1,4,5,6,99,1,0 -> 1(add): pos[4]>(99) + pos[5]>(1) = (100)>pos[6]', async () => {
+      expect.assertions(2);
       let buffer = [1, 4, 5, 6, 99, 1, 0];
-      let size = executeCommand(buffer, 0);
+      let size = await executeCommand(buffer, 0);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([1, 4, 5, 6, 99, 1, 100]);
     });
 
-    test('add 101,20,0,3 -> 1(add): imm(20) + pos[0]>(101) = (121)>pos[3]', () => {
+    test('add 101,20,0,3 -> 1(add): imm(20) + pos[0]>(101) = (121)>pos[3]', async () => {
+      expect.assertions(2);
       let buffer = [101, 20, 0, 3];
-      let size = executeCommand(buffer, 0);
+      let size = await executeCommand(buffer, 0);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([101, 20, 0, 121]);
     });
 
-    test('add 101,4,5,6,99,1,0 -> 1(add): imm(4) + pos[5]>(1) = (5)>pos[6]', () => {
+    test('add 101,4,5,6,99,1,0 -> 1(add): imm(4) + pos[5]>(1) = (5)>pos[6]', async () => {
+      expect.assertions(2);
       let buffer = [101, 4, 5, 6, 99, 1, 0];
-      let size = executeCommand(buffer, 0);
+      let size = await executeCommand(buffer, 0);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([101, 4, 5, 6, 99, 1, 5]);
     });
 
-    test('add 1001,4,5,6,99,1,0 -> 1(add): pos[4]>(99) + imm(5) = (104)>pos[6]', () => {
+    test('add 1001,4,5,6,99,1,0 -> 1(add): pos[4]>(99) + imm(5) = (104)>pos[6]', async () => {
+      expect.assertions(2);
       let buffer = [1001, 4, 5, 6, 99, 1, 0];
-      let size = executeCommand(buffer, 0);
+      let size = await executeCommand(buffer, 0);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([1001, 4, 5, 6, 99, 1, 104]);
     });
 
-    test('add 1101,4,5,6,99,1,0 -> 1(add): imm(4) + imm(5) = (9)>pos[6]', () => {
+    test('add 1101,4,5,6,99,1,0 -> 1(add): imm(4) + imm(5) = (9)>pos[6]', async () => {
+      expect.assertions(2);
       let buffer = [1101, 4, 5, 6, 99, 1, 0];
-      let size = executeCommand(buffer, 0);
+      let size = await executeCommand(buffer, 0);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([1101, 4, 5, 6, 99, 1, 9]);
@@ -58,41 +67,46 @@ describe('execute command', () => {
   });
 
   describe('opcode 2: multiply', () => {
-    test('multiply 2,3,4,5,99 -> 2(multiply): pos[3]>(5) * pos[4]>(99) = (495)>pos[5]', () => {
+    test('multiply 2,3,4,5,99 -> 2(multiply): pos[3]>(5) * pos[4]>(99) = (495)>pos[5]', async () => {
+      expect.assertions(2);
       let buffer = [2, 3, 4, 5, 99];
-      let size = executeCommand(buffer);
+      let size = await executeCommand(buffer);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([2, 3, 4, 5, 99, 495]);
     });
 
-    test('multiply 2,5,6,7,99,3,4,0 -> 2(multiply): pos[5]>(3) * pos[6]>(4) = (12)>pos[7]', () => {
+    test('multiply 2,5,6,7,99,3,4,0 -> 2(multiply): pos[5]>(3) * pos[6]>(4) = (12)>pos[7]', async () => {
+      expect.assertions(2);
       let buffer = [2, 5, 6, 7, 99, 3, 4, 0];
-      let size = executeCommand(buffer);
+      let size = await executeCommand(buffer);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([2, 5, 6, 7, 99, 3, 4, 12]);
     });
 
-    test('multiply 102,5,6,7,99,3,4,0 -> 2(multiply): imm(5) * pos[6]>(4) = (20)>pos[7]', () => {
+    test('multiply 102,5,6,7,99,3,4,0 -> 2(multiply): imm(5) * pos[6]>(4) = (20)>pos[7]', async () => {
+      expect.assertions(2);
       let buffer = [102, 5, 6, 7, 99, 3, 4, 0];
-      let size = executeCommand(buffer);
+      let size = await executeCommand(buffer);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([102, 5, 6, 7, 99, 3, 4, 20]);
     });
 
-    test('multiply 1002,5,6,7,99,3,4,0 -> 2(multiply): pos[5]>(3) * imm(6) = (18)>pos[7]', () => {
+    test('multiply 1002,5,6,7,99,3,4,0 -> 2(multiply): pos[5]>(3) * imm(6) = (18)>pos[7]', async () => {
+      expect.assertions(2);
       let buffer = [1002, 5, 6, 7, 99, 3, 4, 0];
-      let size = executeCommand(buffer);
+      let size = await executeCommand(buffer);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([1002, 5, 6, 7, 99, 3, 4, 18]);
     });
 
-    test('multiply 1102,5,6,7,99,3,4,0 -> 2(multiply): imm(5) * imm(6) = (30)>pos[7]', () => {
+    test('multiply 1102,5,6,7,99,3,4,0 -> 2(multiply): imm(5) * imm(6) = (30)>pos[7]', async () => {
+      expect.assertions(2);
       let buffer = [1102, 5, 6, 7, 99, 3, 4, 0];
-      let size = executeCommand(buffer);
+      let size = await executeCommand(buffer);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([1102, 5, 6, 7, 99, 3, 4, 30]);
@@ -102,20 +116,22 @@ describe('execute command', () => {
   describe('opcode 3: input', () => {
     // Opcode 3 takes a single integer as input and saves it to the position given by its only parameter. 
     // For example, the instruction 3,50 would take an input value and store it at address 50.
-    test('input 3,1,99 ', () => {
+    test('input 3,1,99 ', async () => {
+      expect.assertions(3);
       let buffer = [3, 1, 99];
       let input = jest.fn(() => 3333);
-      let size = executeCommand(buffer, 0, input);
+      let size = await executeCommand(buffer, 0, input);
 
       expect(size).toBe(2);
       expect(buffer).toEqual([3, 3333, 99]);
       expect(input).toHaveBeenCalled();
     });
 
-    test('input 3,3,99,0', () => {
+    test('input 3,3,99,0', async () => {
+      expect.assertions(3);
       let buffer = [3, 3, 99, 0];
       let input = jest.fn(() => 3333);
-      let size = executeCommand(buffer, 0, input);
+      let size = await executeCommand(buffer, 0, input);
 
       expect(size).toBe(2);
       expect(buffer).toEqual([3, 3, 99, 3333]);
@@ -126,44 +142,48 @@ describe('execute command', () => {
   describe('opcode 4: output', () => {
     // Opcode 4 outputs the value of its only parameter. 
     // For example, the instruction 4,50 would output the value at address 50.
-    test('output 4,2,99 -> 4(output): pos[2](99)', () => {
+    test('output 4,2,99 -> 4(output): pos[2](99)', async () => {
+      expect.assertions(3);
       let buffer = [4, 2, 99];
       let input = jest.fn(() => 3333);
       let output = jest.fn();
-      let size = executeCommand(buffer, 0, input, output);
+      let size = await executeCommand(buffer, 0, input, output);
 
       expect(size).toBe(2);
       expect(buffer).toEqual([4, 2, 99]);
       expect(output).toHaveBeenCalledWith(99);
     });
 
-    test('output 4,3,99,4444 -> 4(output): pos[3](4444)', () => {
+    test('output 4,3,99,4444 -> 4(output): pos[3](4444)', async () => {
+      expect.assertions(3);
       let buffer = [4, 3, 99, 4444];
       let input = jest.fn(() => 3333);
       let output = jest.fn();
-      let size = executeCommand(buffer, 0, input, output);
+      let size = await executeCommand(buffer, 0, input, output);
 
       expect(size).toBe(2);
       expect(buffer).toEqual([4, 3, 99, 4444]);
       expect(output).toHaveBeenCalledWith(4444);
     });
 
-    test('output 104,2,99 -> 4(output): imm[2](2)', () => {
+    test('output 104,2,99 -> 4(output): imm[2](2)', async () => {
+      expect.assertions(3);
       let buffer = [104, 2, 99];
       let input = jest.fn(() => 3333);
       let output = jest.fn();
-      let size = executeCommand(buffer, 0, input, output);
+      let size = await executeCommand(buffer, 0, input, output);
 
       expect(size).toBe(2);
       expect(buffer).toEqual([104, 2, 99]);
       expect(output).toHaveBeenCalledWith(2);
     });
 
-    test('output 104,3,99,4444 -> 4(output): imm[3](3)', () => {
+    test('output 104,3,99,4444 -> 4(output): imm[3](3)', async () => {
+      expect.assertions(3);
       let buffer = [104, 3, 99, 4444];
       let input = jest.fn(() => 3333);
       let output = jest.fn();
-      let size = executeCommand(buffer, 0, input, output);
+      let size = await executeCommand(buffer, 0, input, output);
 
       expect(size).toBe(2);
       expect(buffer).toEqual([104, 3, 99, 4444]);
@@ -185,9 +205,10 @@ describe('execute command', () => {
     //   B - mode of 2nd parameter,  1 == immediate mode
     //   A - mode of 3rd parameter,  0 == position mode,
     //                                     omitted due to being a leading zero
-    test('example 1002,4,3,4,33 -> 2(multiply): pos[4]>(33) * imm(3) = (99)>pos[4]', () => {
+    test('example 1002,4,3,4,33 -> 2(multiply): pos[4]>(33) * imm(3) = (99)>pos[4]', async () => {
+      expect.assertions(2);
       let buffer = [1002, 4, 3, 4, 33];
-      let size = executeCommand(buffer, 0);
+      let size = await executeCommand(buffer, 0);
       // 2(multiply): pos[4]>(33) * imm[3]>(3) = (99)>pos[4]
       expect(size).toBe(4);
       expect(buffer).toEqual([1002, 4, 3, 4, 99]);
@@ -195,9 +216,10 @@ describe('execute command', () => {
 
     // Integers can be negative: 1101,100,-1,4,0 is a valid program 
     // (find 100 + -1, store the result in position 4).
-    test('example 1101,100,-1,4,0 -> 1(add): imm(100) + imm(-1) = (99)>pos[4]', () => {
+    test('example 1101,100,-1,4,0 -> 1(add): imm(100) + imm(-1) = (99)>pos[4]', async () => {
+      expect.assertions(2);
       let buffer = [1101, 100, -1, 4, 0];
-      let size = executeCommand(buffer, 0);
+      let size = await executeCommand(buffer, 0);
 
       expect(size).toBe(4);
       expect(buffer).toEqual([1101, 100, -1, 4, 99]);
@@ -208,25 +230,28 @@ describe('execute command', () => {
     // Opcode 5 is jump-if-true: if the first parameter is non-zero, 
     // it sets the instruction pointer to the value from the second parameter. 
     // Otherwise, it does nothing.
-    test('jump-if-true, non-jump', () => {
+    test('jump-if-true, non-jump', async () => {
+      expect.assertions(2);
       let ptr = 0; //               >
-      let ptrDelta = executeCommand([1105, 0, 7, 1101, 1, 1, 1, 99], ptr);
+      let ptrDelta = await executeCommand([1105, 0, 7, 1101, 1, 1, 1, 99], ptr);
       // 0 is not non-zero so increment ptr by size(opcode).
       expect(ptrDelta).toBe(3);
       expect(ptr + ptrDelta).toBe(3);
     });
 
-    test('jump-if-true, jump forwards', () => {
+    test('jump-if-true, jump forwards', async () => {
+      expect.assertions(2);
       let ptr = 0; //               >
-      let ptrDelta = executeCommand([1105, 777, 7, 1101, 1, 1, 1, 99], ptr);
+      let ptrDelta = await executeCommand([1105, 777, 7, 1101, 1, 1, 1, 99], ptr);
       // 777 is non-zero so jump to ptr=7.
       expect(ptrDelta).toBe(7);
       expect(ptr + ptrDelta).toBe(7);
     });
 
-    test('jump-if-true, jump backwards', () => {
+    test('jump-if-true, jump backwards', async () => {
+      expect.assertions(2);
       let ptr = 4; //                              >
-      let ptrDelta = executeCommand([1101, 1, 1, 1, 1105, 777, 0, 99], 4);
+      let ptrDelta = await executeCommand([1101, 1, 1, 1, 1105, 777, 0, 99], 4);
       // 777 is non-zero so jump to ptr=7.
       expect(ptrDelta).toBe(-4);
       expect(ptr + ptrDelta).toBe(0);
@@ -236,25 +261,28 @@ describe('execute command', () => {
     // Opcode 6 is jump-if-false: if the first parameter is zero, 
     // it sets the instruction pointer to the value from the second parameter. 
     // Otherwise, it does nothing.
-    test('jump-if-false, non-jump', () => {
+    test('jump-if-false, non-jump', async () => {
+      expect.assertions(2);
       let ptr = 0; //               >
-      let ptrDelta = executeCommand([1106, 777, 7, 1101, 1, 1, 1, 99], ptr);
+      let ptrDelta = await executeCommand([1106, 777, 7, 1101, 1, 1, 1, 99], ptr);
       // 777 is non-zero so increment ptr by size(opcode).
       expect(ptrDelta).toBe(3);
       expect(ptr + ptrDelta).toBe(3);
     });
 
-    test('jump-if-false, jump forwards', () => {
+    test('jump-if-false, jump forwards', async () => {
+      expect.assertions(2);
       let ptr = 0; //               >
-      let ptrDelta = executeCommand([1106, 0, 7, 1101, 1, 1, 1, 99], ptr);
+      let ptrDelta = await executeCommand([1106, 0, 7, 1101, 1, 1, 1, 99], ptr);
       // 0 is not non-zero so jump to ptr=7.
       expect(ptrDelta).toBe(7);
       expect(ptr + ptrDelta).toBe(7);
     });
 
-    test('jump-if-false, jump backwards', () => {
+    test('jump-if-false, jump backwards', async () => {
+      expect.assertions(2);
       let ptr = 4; //                              >
-      let ptrDelta = executeCommand([1101, 1, 1, 1, 1106, 0, 0, 99], ptr);
+      let ptrDelta = await executeCommand([1101, 1, 1, 1, 1106, 0, 0, 99], ptr);
       // 0 is not non-zero so jump to ptr=7.
       expect(ptrDelta).toBe(-4);
       expect(ptr + ptrDelta).toBe(0);
@@ -264,31 +292,35 @@ describe('execute command', () => {
     // Opcode 7 is less than: if the first parameter is less than the second parameter, 
     // it stores 1 in the position given by the third parameter. 
     // Otherwise, it stores 0.
-    test('less-than, is less-than', () => {
+    test('less-than, is less-than', async () => {
+      expect.assertions(2);
       let buffer = [1107, -1, 77, 7, 99, 0, 0, 555];
       let ptr = 0; // ^
-      let ptrDelta = executeCommand(buffer, ptr);
+      let ptrDelta = await executeCommand(buffer, ptr);
       expect(ptrDelta).toBe(4);
       expect(buffer[7]).toBe(1);
     });
-    test('less-than, not less-than', () => {
+    test('less-than, not less-than', async () => {
+      expect.assertions(2);
       let buffer = [1107, 77, -1, 7, 99, 0, 0, 555];
       let ptr = 0; // ^
-      let ptrDelta = executeCommand(buffer, ptr);
+      let ptrDelta = await executeCommand(buffer, ptr);
       expect(ptrDelta).toBe(4);
       expect(buffer[7]).toBe(0);
     });
-    test('less-than, position mode, is less-than', () => {
+    test('less-than, position mode, is less-than', async () => {
+      expect.assertions(2);
       let buffer = [7, 5, 6, 7, 99, -1, 77, 555];
       let ptr = 0;
-      let ptrDelta = executeCommand(buffer, ptr);
+      let ptrDelta = await executeCommand(buffer, ptr);
       expect(ptrDelta).toBe(4);
       expect(buffer[7]).toBe(1);
     });
-    test('less-than, position mode, not less-than', () => {
+    test('less-than, position mode, not less-than', async () => {
+      expect.assertions(2);
       let buffer = [7, 5, 6, 7, 99, 77, -1, 555];
       let ptr = 0;
-      let ptrDelta = executeCommand(buffer, ptr);
+      let ptrDelta = await executeCommand(buffer, ptr);
       expect(ptrDelta).toBe(4);
       expect(buffer[7]).toBe(0);
     });
@@ -297,40 +329,45 @@ describe('execute command', () => {
     // Opcode 8 is equals: if the first parameter is equal to the second parameter, 
     // it stores 1 in the position given by the third parameter. 
     // Otherwise, it stores 0.
-    test('equals, immediate mode, is equals', () => {
+    test('equals, immediate mode, is equals', async () => {
+      expect.assertions(2);
       let buffer = [1108, -77, -77, 7, 99, 0, 0, 555];
       let ptr = 0; // ^
-      let ptrDelta = executeCommand(buffer, ptr);
+      let ptrDelta = await executeCommand(buffer, ptr);
       expect(ptrDelta).toBe(4);
       expect(buffer[7]).toBe(1);
     });
-    test('equals, immediate mode, not equals', () => {
+    test('equals, immediate mode, not equals', async () => {
+      expect.assertions(2);
       let buffer = [1108, 77, -77, 7, 99, 0, 0, 555];
       let ptr = 0; // ^
-      let ptrDelta = executeCommand(buffer, ptr);
+      let ptrDelta = await executeCommand(buffer, ptr);
       expect(ptrDelta).toBe(4);
       expect(buffer[7]).toBe(0);
     });
-    test('equals, position mode, is equals', () => {
+    test('equals, position mode, is equals', async () => {
+      expect.assertions(2);
       let buffer = [8, 5, 6, 7, 99, -1, -1, 555];
       let ptr = 0;
-      let ptrDelta = executeCommand(buffer, ptr);
+      let ptrDelta = await executeCommand(buffer, ptr);
       expect(ptrDelta).toBe(4);
       expect(buffer[7]).toBe(1);
     });
-    test('equals, position mode, not equals', () => {
+    test('equals, position mode, not equals', async () => {
+      expect.assertions(2);
       let buffer = [8, 5, 6, 7, 99, 77, -1, 555];
       let ptr = 0;
-      let ptrDelta = executeCommand(buffer, ptr);
+      let ptrDelta = await executeCommand(buffer, ptr);
       expect(ptrDelta).toBe(4);
       expect(buffer[7]).toBe(0);
     });
   });
 
   describe('opcode 99: stop', () => {
-    test('stop 1,4,5,6,*>99,1,0', () => {
+    test('stop 1,4,5,6,*>99,1,0', async () => {
+      expect.assertions(2);
       let buffer = [1, 4, 5, 6, 99, 1, 0];
-      let result = executeCommand(buffer, 4);
+      let result = await executeCommand(buffer, 4);
 
       expect(result).toBe(false);
       expect(buffer).toEqual([1, 4, 5, 6, 99, 1, 0]);
@@ -342,9 +379,10 @@ describe('executeProgram', () => {
 
   describe('Opcode 1 & 2: initial and final states of a few more small programs', () => {
       
-    test('1,4,5,6,99,1,0', () => {
+    test('1,4,5,6,99,1,0', async () => {
+      expect.assertions(1);
       let buffer = [1, 4, 5, 6, 99, 1, 0];
-      executeProgram(buffer);
+      await executeProgram(buffer);
 
       expect(buffer).toEqual([1, 4, 5, 6, 99, 1, 100]);
     });
@@ -358,37 +396,42 @@ describe('executeProgram', () => {
     1,1,1,4,99,5,6,0,99 becomes 30,1,1,4,2,5,6,0,99.
     */
 
-    test('1,0,0,0,99 becomes 2,0,0,0,99 (1 + 1 = 2).', () => {
+    test('1,0,0,0,99 becomes 2,0,0,0,99 (1 + 1 = 2).', async () => {
+      expect.assertions(1);
       let buffer = [1, 0, 0, 0, 99];
-      executeProgram(buffer);
+      await executeProgram(buffer);
 
       expect(buffer).toEqual([2, 0, 0, 0, 99]);
     });
 
-    test('2,3,0,3,99 becomes 2,3,0,6,99 (3 * 2 = 6).', () => {
+    test('2,3,0,3,99 becomes 2,3,0,6,99 (3 * 2 = 6).', async () => {
+      expect.assertions(1);
       let buffer = [2, 3, 0, 3, 99];
-      executeProgram(buffer);
+      await executeProgram(buffer);
 
       expect(buffer).toEqual([2, 3, 0, 6, 99]);
     });
 
-    test('2,4,4,5,99,0 becomes 2,4,4,5,99,9801 (99 * 99 = 9801).', () => {
+    test('2,4,4,5,99,0 becomes 2,4,4,5,99,9801 (99 * 99 = 9801).', async () => {
+      expect.assertions(1);
       let buffer = [2, 4, 4, 5, 99, 0];
-      executeProgram(buffer);
+      await executeProgram(buffer);
 
       expect(buffer).toEqual([2, 4, 4, 5, 99, 9801]);
     });
 
-    test('1,1,1,4,99,5,6,0,99 becomes 30,1,1,4,2,5,6,0,99.', () => {
+    test('1,1,1,4,99,5,6,0,99 becomes 30,1,1,4,2,5,6,0,99.', async () => {
+      expect.assertions(1);
       let buffer = [1, 1, 1, 4, 99, 5, 6, 0, 99];
-      executeProgram(buffer);
+      await executeProgram(buffer);
 
       expect(buffer).toEqual([30, 1, 1, 4, 2, 5, 6, 0, 99]);
     });
 
-    test('1,9,10,3,2,3,11,0,99,30,40,50 becomes 3500,9,10,70,2,3,11,0,99,30,40,50', () => {
+    test('1,9,10,3,2,3,11,0,99,30,40,50 becomes 3500,9,10,70,2,3,11,0,99,30,40,50', async () => {
+      expect.assertions(1);
       buffer = [1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50];
-      executeProgram(buffer);
+      await executeProgram(buffer);
 
       expect(buffer).toEqual([3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50]);
     });
@@ -402,11 +445,12 @@ describe('executeProgram', () => {
     // Programs that use these instructions will come with documentation that explains what should be 
     // connected to the input and output. 
     // The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
-    test('input output 3,0,4,0,99', () => {
+    test('input output 3,0,4,0,99', async () => {
+      expect.assertions(4);
       let buffer = [3, 0, 4, 0, 99];
       let input = jest.fn(() => 7777);
       let output = jest.fn();
-      executeProgram(buffer, input, output);
+      await executeProgram(buffer, input, output);
 
       expect(buffer).toEqual([7777, 0, 4, 0, 99]);
       expect(input).toHaveBeenCalledTimes(1);
@@ -415,183 +459,97 @@ describe('executeProgram', () => {
     });
   });
 
-  describe('Opcodes 5-8: (7 & 8) several programs that take one input, compare it to the value 8', () => {
-    // 3,9,8,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
-    describe('3,9,8,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).', () => {
-      let buffer = [3,9,8,9,10,9,4,9,99,-1,8];
-      let outputFn = jest.fn();
-      test('input 1 is not equal to 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 1, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(0);
-      });
-      test('input 8 is equal to 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 8, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(1);
-      });
-      test('input 10 is not equal to 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 10, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(0);
-      });
-    });
-
-    // 3,9,7,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
-    describe('3,9,7,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).', () => {
-      let buffer = [3,9,7,9,10,9,4,9,99,-1,8];
-      let outputFn = jest.fn();
-      test('input 1 is less than 8', () => {
-        outputFn.mockClear();
-        
-        executeProgram(buffer, () => 1, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(1);
-      });
-      test('input 8 is not less than 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 8, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(0);
-      });
-      test('input 10 is not less than 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 10, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(0);
-      });
-    });
-    
-    // 3,3,1108,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
-    describe('3,3,1108,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).', () => {
-      let buffer = [3,3,1108,-1,8,3,4,3,99];
-      let outputFn = jest.fn();
-      test('input 1 is not equal to 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 1, outputFn);
-
-        expect(outputFn).lastCalledWith(0);
-      });
-      test('input 8 is equal to 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 8, outputFn);
-
-        expect(outputFn).lastCalledWith(1);
-      });
-      test('input 10 is not equal to 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 10, outputFn);
-
-        expect(outputFn).lastCalledWith(0);
-      });
-    });
-
-    // 3,3,1107,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
-    describe('3,3,1107,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).', () => {
-      let buffer = [3,3,1107,-1,8,3,4,3,99];
-      let outputFn = jest.fn();
-      test('input 1 is less than 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 1, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(1);
-      });
-      test('input 8 is not less than 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 8, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(0);
-      });
-      test('input 10 is not less than 8', () => {
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 10, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(0);
-      });
-    });
-
-  });
-
-  describe('Opcodes 5-8: (5 & 6) some jump tests that take an input, then output 0 if the input was zero or 1 if the input was non-zero', () => {
+  describe('Opcode 5 & 6: some jump tests that take an input, then output 0 if the input was zero or 1 if the input was non-zero', () => {
 
     // Here are some jump tests that take an input, then output 0 if the input was zero or 1 if the input was non-zero:
 
     // 3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9 (using position mode)
-    describe('3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9 (using position mode)', () => {
-      let bufferTemplate = [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9];
-      let outputFn = jest.fn();
-      test('input 1 is non-zero', () => {
-        let buffer = bufferTemplate.slice();
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 1, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(1);
-      });
-      test('input 0 is not non-zero', () => {
-        let buffer = bufferTemplate.slice(0);
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => 0, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(0);
-      });
-      test('input -5 is non-zero', () => {
-        let buffer = bufferTemplate.slice(0);
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => -5, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(1);
-      });
-    });
-
     // 3,3,1105,-1,9,1101,0,0,12,4,12,99,1 (using immediate mode)
-    describe('3,3,1105,-1,9,1101,0,0,12,4,12,99,1 (using immediate mode)', () => {
-      let bufferTemplate = [3,3,1105,-1,9,1101,0,0,12,4,12,99,1];
-      let outputFn = jest.fn();
-      test('input 1 is non-zero', () => {
-        let buffer = bufferTemplate.slice(0);
-        outputFn.mockClear();
+    describe.each([
+      ['immediate mode', [3,3,1105,-1,9,1101,0,0,12,4,12,99,1]],
+      ['position mode', [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9]]
+    ])('Example program using %s', (_, bufferTemplate) => {
 
-        executeProgram(buffer, () => 1, outputFn);
+      // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
+      test.each([
+        [1, 'non-zero', 1],
+        [0, 'not non-zero', 0],
+        [-1, 'non-zero', 1],
+        [-1000, 'non-zero', 1],
+        [2000, 'non-zero', 1],
+        [NaN, 'non-zero', 1],
+      ])('Input %i is %s and so returns %i.', async (input, _, output) => {
+        
+        expect.assertions(1);
+        let buffer = bufferTemplate.slice();
+        let outputFn = jest.fn();
 
-        expect(outputFn).toHaveBeenCalledWith(1);
-      });
-      test('input 0 is not non-zero', () => {
-        let buffer = bufferTemplate.slice(0);
-        outputFn.mockClear();
+        await executeProgram(buffer, () => input, outputFn);
 
-        executeProgram(buffer, () => 0, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(0);
-      });
-      test('input -5 is non-zero', () => {
-        let buffer = bufferTemplate.slice(0);
-        outputFn.mockClear();
-
-        executeProgram(buffer, () => -5, outputFn);
-
-        expect(outputFn).toHaveBeenCalledWith(1);
+        expect(outputFn).toHaveBeenCalledWith(output);
       });
     });
 
   });
   
+  describe('Opcode 7 & 8: several programs that take one input, compare it to the value 8', () => {
+    
+    // 3,9,7,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
+    // 3,3,1107,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
+    describe.each([
+      [7, 'position mode', [3,9,7,9,10,9,4,9,99,-1,8]],
+      [1107, 'immediate mode', [3,3,1107,-1,8,3,4,3,99]],
+    ])('Opcode %i: Using %s, consider if the input is less than 8;', (_, __, bufferTemplate) => {
+
+      // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
+      test.each([
+        [1, 'less than', 1],
+        [8, 'not less than', 0],
+        [10, 'not less than', 0],
+        [-1000, 'less than', 1],
+        [2000, 'not less than', 0],
+        [NaN, 'not less than', 0],
+      ])('Input %i is %s to 8 and so returns %i.', async (input, _, output) => {
+
+        expect.assertions(1);
+        let buffer = bufferTemplate.slice();
+        let outputFn = jest.fn();
+
+        await executeProgram(buffer, () => input, outputFn);
+
+        expect(outputFn).lastCalledWith(output);
+      });
+    });
+
+    // 3,9,8,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
+    // 3,3,1108,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
+    describe.each([
+      [8, 'position mode', [3,9,8,9,10,9,4,9,99,-1,8]],
+      [1108, 'immediate mode', [3,3,1108,-1,8,3,4,3,99]],
+    ])('Opcode %i: Using %s, consider if the input is equal to 8;', (_, __, bufferTemplate) => {
+
+      // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
+      test.each([
+        [1, 'not equal', 0],
+        [8, 'equal', 1],
+        [10, 'not equal', 0],
+        [-1000, 'not equal', 0],
+        [2000, 'not equal', 0],
+        [NaN, 'not equal', 0],
+      ])('Input %i is %s to 8 and so returns %i.', async (input, _, output) => {
+
+        expect.assertions(1);
+        let buffer = bufferTemplate.slice();
+        let outputFn = jest.fn();
+
+        await executeProgram(buffer, () => input, outputFn);
+
+        expect(outputFn).lastCalledWith(output);
+      });
+    });
+
+  });
+
   describe('Opcodes 5-8: a larger example', () => {
   
     //   Here's a larger example:
@@ -604,30 +562,20 @@ describe('executeProgram', () => {
       999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
     let outputFn = jest.fn();
 
-    // The above example program uses an input instruction to ask for a single number. The program will then output 999 if the input value is below 8, output 1000 if the input value is equal to 8, or output 1001 if the input value is greater than 8.
-    test('The program will then output 999 if the input value is below 8', () => {
+    test.each([
+      [999, 'below 8', -5],
+      [999, 'below 8', 3],
+      [1000, 'equal to 8', 8],
+      [1001, 'greater than 8', 10],
+      [1001, 'greater than 8', 1000],
+    ])('The program will output %i if the input value is %s (e.g. %i)', async (output, _, input) => {
+      expect.assertions(1);
       let buffer = bufferTemplate.slice();
       outputFn.mockClear();
 
-      executeProgram(buffer, () => -5, outputFn);
+      await executeProgram(buffer, () => input, outputFn);
 
-      expect(outputFn).toHaveBeenCalledWith(999);
-    });
-    test('The program will output 1000 if the input value is equal to 8', () => {
-      let buffer = bufferTemplate.slice();
-      outputFn.mockClear();
-
-      executeProgram(buffer, () => 8, outputFn);
-
-      expect(outputFn).toHaveBeenCalledWith(1000);
-    });
-    test('The program will output 1001 if the input value is greater than 8', () => {
-      let buffer = bufferTemplate.slice();
-      outputFn.mockClear();
-
-      executeProgram(buffer, () => 20, outputFn);
-
-      expect(outputFn).toHaveBeenCalledWith(1001);
+      expect(outputFn).toHaveBeenCalledWith(output);
     });
   });
 });
