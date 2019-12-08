@@ -2,11 +2,73 @@
 const {
   executeProgram,
   loadInputFile
-} = require('../day05/intCodeComputer');
+} = require('./intCodeComputer');
 
+
+
+function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
+  let signalStrength = 0;
+
+  let inputGen = inputGenerator(phaseSequence.slice());
+  function inputFn() {
+    return inputGen.next().value;
+  }
+  function outputFn(val) {
+    signalStrength = val;
+  }
+
+  try {
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    return signalStrength;
+  } catch (ex) {
+    console.error(ex);
+  }
+
+  // This Phase Sequence Generator will run forever.
+  // Alternating between the next phase setting, 
+  // and the current signalStrength
+  function* inputGenerator(phaseSequence) {
+    while (1) {
+      if (phaseSequence.length > 0) {
+        const nextSequence = phaseSequence.shift();
+        // phaseSequence.push(nextSequence);
+        yield nextSequence;
+      }
+      yield signalStrength;
+    }
+  }
+}
 
 function runAmplifySequence(buffer, phaseSequence) {
   let signalStrength = 0;
+  let inputGen = gen(phaseSequence.slice());
+
+  function inputFn() {
+    // let input = readline.question("Diagnostic System ID: ");
+    let input = inputGen.next().value;
+    // console.log('input, ', input);
+    return input;
+  }
+  function outputFn(val) {
+    signalStrength = val;
+    // console.log('signalStrength', val);
+  }
+
+  try {
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    executeProgram(buffer.slice(), inputFn, outputFn);
+    return signalStrength;
+  } catch (ex) {
+    console.error(ex);
+  }
+
   function* gen(phaseSequence) {
     // Start the copy of the amplifier controller software that will run on amplifier A. 
     // At its first input instruction, provide it the amplifier's phase setting, 3. 
@@ -37,35 +99,12 @@ function runAmplifySequence(buffer, phaseSequence) {
     yield phaseSequence.shift();
     yield signalStrength;
   }
-  let inputGen = gen(phaseSequence.slice());
-
-  function inputFn() {
-    // let input = readline.question("Diagnostic System ID: ");
-    let input = inputGen.next().value;
-    // console.log('input, ', input);
-    return input;
-  }
-  function outputFn(val) {
-    signalStrength = val;
-    // console.log('signalStrength', val);
-  }
-
-  try {
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    executeProgram(buffer.slice(), inputFn, outputFn);
-    return signalStrength;
-  } catch (ex) {
-    console.error(ex);
-  }
 }
 
 function findMaxAmplifySequence(buffer) {
   let max = 0;
   let sequence;
-  for (const phaseSequence of phaseSequencePermutations()) {
+  for (const phaseSequence of phaseSequencePermutations([0,1,2,3,4])) {
     let result = runAmplifySequence(buffer, phaseSequence);
     if (result > max) {
       max = result;
@@ -75,13 +114,22 @@ function findMaxAmplifySequence(buffer) {
   return { max, sequence };
 }
 
-function* phaseSequencePermutations() {
-  yield* permute([0, 1, 2, 3, 4]);
+function findMaxAmplifySequenceWithFeedback(buffer) {
+  let max = 0;
+  let sequence;
+  for (const phaseSequence of phaseSequencePermutations([5,6,7,8,9])) {
+    let result = runAmplifySequenceWithFeedback(buffer, phaseSequence);
+    if (result > max) {
+      max = result;
+      sequence = phaseSequence;
+    }
+  }
+  return { max, sequence };
 }
 
 // Efficient permution generator using Heap's method
 // https://stackoverflow.com/a/37580979
-function* permute(permutation) {
+function* phaseSequencePermutations(permutation) {
   var length = permutation.length,
     c = Array(length).fill(0),
     i = 1, k, p;
@@ -105,5 +153,7 @@ function* permute(permutation) {
 
 module.exports = {
   runAmplifySequence,
-  findMaxAmplifySequence
+  runAmplifySequenceWithFeedback,
+  findMaxAmplifySequence,
+  findMaxAmplifySequenceWithFeedback
 }

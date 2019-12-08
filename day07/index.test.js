@@ -1,4 +1,4 @@
-const { loadInputFile } = require('../day05/intCodeComputer');
+const { loadInputFile } = require('../day05/loadBuffer');
 const { findMaxAmplifySequence } = require('./amplifier');
 
 let filename = __dirname + '/input.txt';
