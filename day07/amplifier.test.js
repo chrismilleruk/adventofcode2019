@@ -67,7 +67,7 @@ describe('Amplifier Controller Software', () => {
     });
   });
 
-  describe.skip('amplifiers with feedback - example programs', () => {
+  describe('amplifiers with feedback - example programs', () => {
     // Max thruster signal 139629729 (from phase setting sequence 9,8,7,6,5):
 
     // 3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,
@@ -80,12 +80,13 @@ describe('Amplifier Controller Software', () => {
       const maxThrusterSignal = 139629729;
 
       test('Test optimal settings', async () => {
+        jest.setTimeout(10000);
         const result = await runAmplifySequenceWithFeedback(buffer.slice(), phaseSettingSequence);
         expect(result).toBe(maxThrusterSignal);
       });
 
       test('Find best settings', async () => {
-        expect.assertions(1);
+        expect.assertions(2);
         const result = await findMaxAmplifySequenceWithFeedback(buffer);
         expect(result.sequence).toStrictEqual(phaseSettingSequence);
         expect(result.max).toBe(maxThrusterSignal);
@@ -104,8 +105,8 @@ describe('Amplifier Controller Software', () => {
       const buffer = [3, 52, 1001, 52, -5, 52, 3, 53, 1, 52, 56, 54, 1007, 54, 5, 55, 1005, 55, 26, 1001, 54,
         -5, 54, 1105, 1, 12, 1, 53, 54, 53, 1008, 54, 0, 55, 1001, 55, 1, 55, 2, 53, 55, 53, 4,
         53, 1001, 56, -1, 56, 1005, 56, 6, 99, 0, 0, 0, 0, 10];
-      const phaseSettingSequence = [9, 8, 7, 6, 5];
-      const maxThrusterSignal = 139629729;
+      const phaseSettingSequence = [9,7,8,5,6];
+      const maxThrusterSignal = 18216;
 
       test('Test optimal settings', async () => {
         const result = await runAmplifySequenceWithFeedback(buffer.slice(), phaseSettingSequence);

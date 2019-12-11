@@ -1,4 +1,4 @@
-const { executeCommand, executeProgram, executeNounVerbProgram } = require('./intCodeComputer');
+const { executeCommand, executeProgram, executeProgramAsGenerator } = require('./intCodeComputer');
 
 describe('execute command', () => {
   test('Encountering an unknown opcode means something went wrong.', async () => {
@@ -137,6 +137,32 @@ describe('execute command', () => {
       expect(buffer).toEqual([3, 3, 99, 3333]);
       expect(input).toHaveBeenCalled();
     });
+
+    test('input async function', async () => {
+      expect.assertions(1);
+      let buffer = [3, 3, 99, 0];
+
+      async function inputFn() {
+        return 3333;
+      }
+
+      let size = await executeCommand(buffer, 0, inputFn);
+
+      expect(buffer).toEqual([3, 3, 99, 3333]);
+    })
+
+    test('input async generator', async () => {
+      expect.assertions(1);
+      let buffer = [3, 3, 99, 0];
+
+      async function* gen() {
+        yield 3333;
+      }
+
+      let size = await executeCommand(buffer, 0, gen());
+
+      expect(buffer).toEqual([3, 3, 99, 3333]);
+    })
   });
 
   describe('opcode 4: output', () => {
@@ -257,6 +283,7 @@ describe('execute command', () => {
       expect(ptr + ptrDelta).toBe(0);
     });
   });
+
   describe('opcode 6: jump-if-false', () => {
     // Opcode 6 is jump-if-false: if the first parameter is zero, 
     // it sets the instruction pointer to the value from the second parameter. 
@@ -288,6 +315,7 @@ describe('execute command', () => {
       expect(ptr + ptrDelta).toBe(0);
     });
   });
+
   describe('opcode 7: less than', () => {
     // Opcode 7 is less than: if the first parameter is less than the second parameter, 
     // it stores 1 in the position given by the third parameter. 
@@ -325,6 +353,7 @@ describe('execute command', () => {
       expect(buffer[7]).toBe(0);
     });
   });
+
   describe('opcode 8: equals', () => {
     // Opcode 8 is equals: if the first parameter is equal to the second parameter, 
     // it stores 1 in the position given by the third parameter. 
@@ -579,3 +608,86 @@ describe('executeProgram', () => {
     });
   });
 });
+
+describe('executeProgramAsGenerator', () => {
+
+  describe('Opcode 3 & 4 example', () => {
+    // Opcode 3 takes a single integer as input and saves it to the position given by its only parameter. 
+    // For example, the instruction 3,50 would take an input value and store it at address 50.
+    // Opcode 4 outputs the value of its only parameter. 
+    // For example, the instruction 4,50 would output the value at address 50.
+    // Programs that use these instructions will come with documentation that explains what should be 
+    // connected to the input and output. 
+    // The program 3,0,4,0,99 outputs whatever it gets as input, then halts.
+    test('input output 3,0,4,0,99', async () => {
+      expect.assertions(3);
+      let buffer = [3, 0, 4, 0, 99];
+      let input = jest.fn(() => 7777);
+
+      for await (const output of executeProgramAsGenerator(buffer, input)) {
+        expect(output).toBe(7777);
+      }
+
+      expect(buffer).toEqual([7777, 0, 4, 0, 99]);
+      expect(input).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Async Input pauses program', () => {
+    test('output 4,0,99', async () => {
+      expect.assertions(2);
+      let buffer = [4, 0, 99];
+      let logData = [];
+      let t0 = Date.now();
+
+      for await (const value of executeProgramAsGenerator(buffer)) {
+        logData.push({
+          value,
+          time: (Date.now() - t0)
+        });
+      }
+
+      expect(logData.length).toBe(1);
+      expect(logData.map(o=>o.value)).toEqual([4]);
+    });
+
+    test('output input output 4,0,3,0,4,0,99', async () => {
+      // DO NOT USE jest.useFakeTimers();
+      expect.assertions(6);
+      let buffer = [4, 0, 3, 0, 4, 0, 99];
+      let logValues = [];
+      let logTimes = [];
+      let delayMs = 50;
+
+      // NB. We're using setTimeout to check if the program is being paused.
+      let t0 = Date.now();
+      async function inputFn() {
+        return await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(7777);
+          }, delayMs)
+        });
+      }
+
+      for await (const value of executeProgramAsGenerator(buffer, inputFn)) {
+        logValues.push(value);
+        logTimes.push(Date.now() - t0);
+      }
+
+      expect(logValues.length).toBe(2);
+      expect(logValues).toEqual([4, 7777]);
+
+      // NB. We're using setTimeout to check if the program is being paused.
+      //     This is bad practice but difficult to test otherwise using
+      //     for await .. of  with an AsyncGenerator()
+
+      // The 1st output should be 0-2 ms so 0-10ms is generous.
+      expect(logTimes[0]).toBeGreaterThanOrEqual(0);
+      expect(logTimes[0]).toBeLessThanOrEqual(10);
+      // The 2nd output should be ~50ms so 50-100ms is generous.
+      expect(logTimes[1]).toBeGreaterThanOrEqual(delayMs);
+      expect(logTimes[1]).toBeLessThanOrEqual(delayMs * 2);
+    });
+  })
+})
+

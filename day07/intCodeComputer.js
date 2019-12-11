@@ -1,10 +1,28 @@
 
 async function executeProgram(buffer, inputFn, outputFn) {
+  let lastOutput;
+  let asyncIterator = executeProgramAsGenerator(buffer, inputFn);
+  for await (const output of asyncIterator) {
+    lastOutput = output;
+    outputFn(output);
+  }
+  return lastOutput;
+}
+
+async function* executeProgramAsGenerator(buffer, inputFn) {
   // The address of the current instruction is called the instruction pointer; it starts at 0. 
   let pointer = 0;
   let step;
 
-  while (step = await executeCommand(buffer, pointer, inputFn, outputFn)) {
+  let outputBuffer = [];
+  let lastOutput;
+
+  while (step = await executeCommand(buffer, pointer, inputFn, (val) => outputBuffer.push(val))) {
+    // Yield outputs
+    while (outputBuffer.length > 0) {
+      yield outputBuffer.shift();
+    }
+
     // Once you're done processing an opcode, move to the next one by stepping forward 4 positions.
     // After an instruction finishes, the instruction pointer increases by the number of values in 
     // the instruction; until you add more instructions to the computer, this is always 4 
@@ -12,6 +30,8 @@ async function executeProgram(buffer, inputFn, outputFn) {
     // increase the instruction pointer by 1, but it halts the program instead.)
     pointer += step;
   }
+
+  return lastOutput;
 }
 
 async function executeCommand(buffer, ptr, inputFn, outputFn) {
@@ -53,6 +73,15 @@ async function executeCommand(buffer, ptr, inputFn, outputFn) {
 
     // We modify the instruction pointer by returning the delta between the pointer and the target.
     return target - ptr;
+  }
+
+  // Add support for Input Generators by wrapping them in a simple async function.
+  if (typeof inputFn !== "undefined" && typeof inputFn.next === 'function') {
+    let oldInputFn = inputFn;
+    inputFn = async () => {
+      let result = await oldInputFn.next();
+      return result.value;
+    }
   }
 
   switch (opcode) {
@@ -126,5 +155,6 @@ async function executeCommand(buffer, ptr, inputFn, outputFn) {
 
 module.exports = {
   executeCommand,
-  executeProgram
+  executeProgram,
+  executeProgramAsGenerator
 };

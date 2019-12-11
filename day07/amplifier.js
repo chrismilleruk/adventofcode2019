@@ -1,44 +1,74 @@
 
 const {
-  executeProgram
+  executeProgram,
+  executeProgramAsGenerator
 } = require('./intCodeComputer');
 
 
 async function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
-  let signalStrength = 0;
+  let sourceAmp = [4,0,1,2,3];
+  let amplifiers = phaseSequence.map((phaseSetting, id) => { 
+    let outputs = [];
 
-  let inputGen = inputGenerator(phaseSequence.slice());
-  function inputFn() {
-    return inputGen.next().value;
-  }
-  function outputFn(val) {
-    signalStrength = val;
-  }
+    async function getNextInput() {
+      let sourceIdx = sourceAmp[id];
+      let value = await amplifiers[sourceIdx].getOutput();
+      // console.log('amp', id, 'got input from amp', sourceIdx, '-', value);
+      return value;
+    }
 
-  try {
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    return signalStrength;
-  } catch (ex) {
-    console.error(ex);
-  }
+    function getOutput() {
+      return new Promise((resolve) => {
+        outputs.unshift(resolve);
+        // console.log('amp', id, 'get output', '(Promise)', outputs);
+      });
+    }
 
-  // This Phase Sequence Generator will run forever.
-  // Alternating between the next phase setting, 
-  // and the current signalStrength
-  function* inputGenerator(phaseSequence) {
-    while (1) {
-      if (phaseSequence.length > 0) {
-        const nextSequence = phaseSequence.shift();
-        // phaseSequence.push(nextSequence);
-        yield nextSequence;
+    function setOutput(value) {
+      // console.log('amp', id, 'setOutput', value, outputs);
+      if (typeof outputs[0] === 'function') {
+        outputs[0](value);
+        outputs[0] = value;
+      } else {
+        // This happens on the last run where no other amp is waiting for input.
+        outputs.unshift(value);
       }
-      yield signalStrength;
+    }
+
+    let amp = {
+      buffer: buffer.slice(),
+      inputFn: inputGenerator(id, phaseSetting, getNextInput),
+      getOutput,
+      outputs,
+      setOutput
+    };
+
+    amp.program = executeProgram(amp.buffer, amp.inputFn, setOutput);
+
+    return amp;
+  });
+
+  // Amplifier input generator, will run forever
+  // Delivers Phase Setting with 1st call.
+  // subsequently returns signalStrength from previous amplifier
+  async function* inputGenerator(id, phaseSetting, getNextInput) {
+    // console.log('amp', id, 'phaseSetting', phaseSetting);
+    yield phaseSetting;
+    while (1) {
+      let input = await getNextInput();
+      yield input;
     }
   }
+
+  setTimeout(() => {
+    amplifiers[4].setOutput(0);
+  });
+  let output = await amplifiers[4].program;
+  
+  // for (let i in [0,1,2,3,4]) {
+  //   console.log('amp', i, amplifiers[i].outputs);
+  // }
+  return output;
 }
 
 async function findMaxAmplifySequenceWithFeedback(buffer) {
@@ -57,24 +87,16 @@ async function findMaxAmplifySequenceWithFeedback(buffer) {
 async function runAmplifySequence(buffer, phaseSequence) {
   let signalStrength = 0;
   let inputGen = gen(phaseSequence.slice());
-
-  function inputFn() {
-    // let input = readline.question("Diagnostic System ID: ");
-    let input = inputGen.next().value;
-    // console.log('input, ', input);
-    return input;
-  }
   function outputFn(val) {
     signalStrength = val;
-    // console.log('signalStrength', val);
   }
 
   try {
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    await executeProgram(buffer.slice(), inputFn, outputFn);
-    await executeProgram(buffer.slice(), inputFn, outputFn);
+    await executeProgram(buffer.slice(), inputGen, outputFn);
+    await executeProgram(buffer.slice(), inputGen, outputFn);
+    await executeProgram(buffer.slice(), inputGen, outputFn);
+    await executeProgram(buffer.slice(), inputGen, outputFn);
+    await executeProgram(buffer.slice(), inputGen, outputFn);
     return signalStrength;
   } catch (ex) {
     console.error(ex);
