@@ -250,6 +250,39 @@ describe('execute command', () => {
       expect(size).toBe(4);
       expect(buffer).toEqual([1101, 100, -1, 4, 99]);
     })
+
+    // Parameters in mode 2, relative mode, behave very similarly to parameters in position mode: 
+    // the parameter is interpreted as a position. Like position mode, parameters in relative mode 
+    // can be read from or written to.
+
+    // The important difference is that relative mode parameters don't count from address 0. 
+    // Instead, they count from a value called the relative base. The relative base starts at 0.
+
+    // The address a relative mode parameter refers to is itself plus the current relative base. 
+
+    // When the relative base is 0, relative mode parameters and position mode parameters with 
+    // the same value refer to the same address.
+    test('relative mode: when relative base is 0, releative mode and position mode are the same.', async () => {
+      // multiply 22202,3,4,5,99 -> 2(multiply): rel[0+3]>(5) * rel[0+4]>(99) = (495)>rel[0+5]
+      expect.assertions(2);
+      let buffer = [22202, 7, 8, 9, 99, 0, 0, 33, 10, 0];
+      let size = await executeCommand(buffer);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([22202, 7, 8, 9, 99, 0, 0, 33, 10, 330]);
+    });
+
+    test('relative mode: relative base = 50, a relative mode parameter of -7 refers to memory address 50 + -7 = 43.', async () => {
+      expect.assertions(2);
+      let buffer = [22202, -43, -42, -41, 99, 0, 0, 33, 10, 0];
+      const state = { ptr: 0, relBase: 50 };
+
+      let size = await executeCommand(buffer, state);
+
+      expect(size).toBe(4);
+      expect(buffer).toEqual([22202, -43, -42, -41, 99, 0, 0, 33, 10, 330]);
+
+    })
   });
 
   describe('opcode 5: jump-if-true', () => {
@@ -392,6 +425,24 @@ describe('execute command', () => {
     });
   });
 
+  describe('opcode 9: adjust relative base', () => {
+    // Opcode 9 adjusts the relative base by the value of its only parameter. The relative base 
+    // increases (or decreases, if the value is negative) by the value of the parameter.
+
+    test('relative mode: relative base increments', async () => {
+      expect.assertions(1);
+      let buffer = [22201, -3, -2, -1, 99, 0, 0, 1, 1];
+
+      for (let relBase = 10; relBase < 15; relBase += 1) {
+        const state = { ptr: 0, relBase };
+
+        await executeCommand(buffer, state);
+      }
+
+      expect(buffer).toEqual([22201, -3, -2, -1, 99, 0, 0, 1, 1, 2, 3, 5, 8, 13]);
+    });
+  });
+
   describe('opcode 99: stop', () => {
     test('stop 1,4,5,6,*>99,1,0', async () => {
       expect.assertions(2);
@@ -407,7 +458,7 @@ describe('execute command', () => {
 describe('executeProgram', () => {
 
   describe('Opcode 1 & 2: initial and final states of a few more small programs', () => {
-      
+
     test('1,4,5,6,99,1,0', async () => {
       expect.assertions(1);
       let buffer = [1, 4, 5, 6, 99, 1, 0];
@@ -495,8 +546,8 @@ describe('executeProgram', () => {
     // 3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9 (using position mode)
     // 3,3,1105,-1,9,1101,0,0,12,4,12,99,1 (using immediate mode)
     describe.each([
-      ['immediate mode', [3,3,1105,-1,9,1101,0,0,12,4,12,99,1]],
-      ['position mode', [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9]]
+      ['immediate mode', [3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1]],
+      ['position mode', [3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9]]
     ])('Example program using %s', (_, bufferTemplate) => {
 
       // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
@@ -508,7 +559,7 @@ describe('executeProgram', () => {
         [2000, 'non-zero', 1],
         [NaN, 'non-zero', 1],
       ])('Input %i is %s and so returns %i.', async (input, _, output) => {
-        
+
         expect.assertions(1);
         let buffer = bufferTemplate.slice();
         let outputFn = jest.fn();
@@ -520,14 +571,14 @@ describe('executeProgram', () => {
     });
 
   });
-  
+
   describe('Opcode 7 & 8: several programs that take one input, compare it to the value 8', () => {
-    
+
     // 3,9,7,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
     // 3,3,1107,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
     describe.each([
-      [7, 'position mode', [3,9,7,9,10,9,4,9,99,-1,8]],
-      [1107, 'immediate mode', [3,3,1107,-1,8,3,4,3,99]],
+      [7, 'position mode', [3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8]],
+      [1107, 'immediate mode', [3, 3, 1107, -1, 8, 3, 4, 3, 99]],
     ])('Opcode %i: Using %s, consider if the input is less than 8;', (_, __, bufferTemplate) => {
 
       // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
@@ -553,8 +604,8 @@ describe('executeProgram', () => {
     // 3,9,8,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
     // 3,3,1108,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
     describe.each([
-      [8, 'position mode', [3,9,8,9,10,9,4,9,99,-1,8]],
-      [1108, 'immediate mode', [3,3,1108,-1,8,3,4,3,99]],
+      [8, 'position mode', [3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8]],
+      [1108, 'immediate mode', [3, 3, 1108, -1, 8, 3, 4, 3, 99]],
     ])('Opcode %i: Using %s, consider if the input is equal to 8;', (_, __, bufferTemplate) => {
 
       // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
@@ -580,15 +631,15 @@ describe('executeProgram', () => {
   });
 
   describe('Opcodes 5-8: a larger example', () => {
-  
+
     //   Here's a larger example:
 
     // 3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
     // 1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
     // 999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99
-    let bufferTemplate = [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
-      1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
-      999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
+    let bufferTemplate = [3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31,
+      1106, 0, 36, 98, 0, 0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104,
+      999, 1105, 1, 46, 1101, 1000, 1, 20, 4, 20, 1105, 1, 46, 98, 99];
     let outputFn = jest.fn();
 
     test.each([
@@ -648,7 +699,7 @@ describe('executeProgramAsGenerator', () => {
       }
 
       expect(logData.length).toBe(1);
-      expect(logData.map(o=>o.value)).toEqual([4]);
+      expect(logData.map(o => o.value)).toEqual([4]);
     });
 
     test('output input output 4,0,3,0,4,0,99', async () => {
@@ -684,10 +735,79 @@ describe('executeProgramAsGenerator', () => {
       // The 1st output should be 0-2 ms so 0-10ms is generous.
       expect(logTimes[0]).toBeGreaterThanOrEqual(0);
       expect(logTimes[0]).toBeLessThanOrEqual(10);
-      // The 2nd output should be ~50ms so 50-100ms is generous.
-      expect(logTimes[1]).toBeGreaterThanOrEqual(delayMs);
+      // The 2nd output should be ~50ms so 49-100ms is generous.
+      expect(logTimes[1]).toBeGreaterThanOrEqual(delayMs - 1);
       expect(logTimes[1]).toBeLessThanOrEqual(delayMs * 2);
     });
-  })
+  });
+
+  describe('Opcode 9 & other capabilities', () => {
+    // Opcode 9 adjusts the relative base by the value of its only parameter. The relative base 
+    // increases (or decreases, if the value is negative) by the value of the parameter.
+
+    // Your Intcode computer will also need a few other capabilities:
+
+    // The computer's available memory should be much larger than the initial program. Memory 
+    // beyond the initial program starts with the value 0 and can be read or written like any 
+    // other memory. (It is invalid to try to access memory at a negative address, though.)
+
+    // The computer should have support for large numbers. Some instructions near the beginning of 
+    // the BOOST program will verify this capability.
+
+    //     Here are some example programs that use these features:
+    test('example takes no input and produces a copy of itself as output.', async () => {
+      // 109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99 takes no input and produces a copy of itself as output.
+      let buffer = [109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99];
+      let outputBuffer = [];
+
+      for await (const value of executeProgramAsGenerator(buffer.slice())) {
+        outputBuffer.push(value);
+      }
+
+      expect(outputBuffer).toEqual(buffer);
+    });
+
+    test('example should output a 16-digit number.', async () => {
+      // 1102,34915192,34915192,7,4,7,99,0 should output a 16-digit number.
+      const buffer = [1102, 34915192, 34915192, 7, 4, 7, 99, 0];
+      let outputBuffer = [];
+
+      for await (const value of executeProgramAsGenerator(buffer)) {
+        outputBuffer.push(value);
+      }
+
+      expect(outputBuffer).toEqual([1219070632396864]);
+    });
+
+    test('example should output the large number in the middle.', async () => {
+      // 104,1125899906842624,99 should output the large number in the middle.
+      const buffer = [104, 1125899906842624, 99];
+      let outputBuffer = [];
+
+      for await (const value of executeProgramAsGenerator(buffer)) {
+        outputBuffer.push(value);
+      }
+
+      expect(outputBuffer).toEqual([1125899906842624]);
+    });
+
+    test('relative base: fibbonacci sequence', async () => {
+      let buffer = [
+        109, 1,             // adjust relative base by +1
+        22201, 15, 16, 17,  // add last two numbers
+        204, 17,            // output result
+        101, -1, 13, 13,    // decrement counter by 1
+        1105, 10, 0,        // if counter > 0, set ptr to 0.
+        99, 1, 1
+      ];
+
+      let outputBuffer = [];
+      for await (const value of executeProgramAsGenerator(buffer)) {
+        outputBuffer.push(value);
+      }
+
+      expect(outputBuffer).toEqual([2, 3, 5, 8, 13, 21, 34, 55, 89, 144]);
+    });
+  });
 })
 
