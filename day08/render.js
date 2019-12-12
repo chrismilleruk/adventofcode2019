@@ -13,7 +13,7 @@ async function flattenLayers(layerAsync) {
 
     // Subsequent layers only render pixels if transparent (2)
     rendered.map((pixel, i) => {
-      if (pixel == 2 ) {
+      if (pixel == 2) {
         rendered[i] = layer[i];
       }
     });

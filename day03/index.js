@@ -59,7 +59,7 @@ async function findIntersections(inputStream) {
       position = { x: 0, y: 0 };
       continue;
     }
-  
+
 
     if (eolCount === 0) {
       // Store wire positions for 1st wire.

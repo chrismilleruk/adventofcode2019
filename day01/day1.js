@@ -1,7 +1,7 @@
 const fs = require('fs');
 const readline = require('readline');
 
-const filename = __dirname+'/day1input.txt';
+const filename = __dirname + '/day1input.txt';
 
 if (require.main === module) {
   processInputFile(filename).then(fuel => console.log(fuel));
@@ -39,9 +39,9 @@ async function processInputFile(filename, recursive) {
   var totalFuel = 0;
 
   const readInterface = readline.createInterface({
-      input: readStream,
-      // output: process.stdout,
-      console: false
+    input: readStream,
+    // output: process.stdout,
+    console: false
   });
 
   for await (const line of readInterface) {

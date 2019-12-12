@@ -1,7 +1,7 @@
 const { loadInputFile } = require('../day05/loadBuffer');
-const { 
-  runAmplifySequence, 
-  findMaxAmplifySequence, 
+const {
+  runAmplifySequence,
+  findMaxAmplifySequence,
   runAmplifySequenceWithFeedback,
   findMaxAmplifySequenceWithFeedback
 } = require('./amplifier');
@@ -13,14 +13,14 @@ let configs = [
   {
     title: 'Part 1: Buffer from input file',
     buffer: filename,
-    phaseSettingSequence: [ 3, 2, 0, 1, 4 ],
+    phaseSettingSequence: [3, 2, 0, 1, 4],
     maxThrusterSignal: 212460,
     useFeedback: false
   },
   {
     title: 'Part 2: Buffer from input file',
     buffer: filename,
-    phaseSettingSequence: [ 8, 5, 9, 6, 7 ],
+    phaseSettingSequence: [8, 5, 9, 6, 7],
     maxThrusterSignal: 21844737,
     useFeedback: true
   },
@@ -47,7 +47,7 @@ let configs = [
     maxThrusterSignal: 65210,
     useFeedback: false
   },
-  {   
+  {
     title: 'Part 2: Max thruster signal 139629729 (from phase setting sequence 9,8,7,6,5)',
     buffer: [3, 26, 1001, 26, -4, 26, 3, 27, 1002, 27, 2, 27, 1, 27, 26,
       27, 4, 27, 1001, 28, -1, 28, 1005, 28, 6, 99, 0, 0, 5],
@@ -58,9 +58,9 @@ let configs = [
   {
     title: 'Part 2: Max thruster signal 18216 (from phase setting sequence 9,7,8,5,6)',
     buffer: [3, 52, 1001, 52, -5, 52, 3, 53, 1, 52, 56, 54, 1007, 54, 5, 55, 1005, 55, 26, 1001, 54,
-        -5, 54, 1105, 1, 12, 1, 53, 54, 53, 1008, 54, 0, 55, 1001, 55, 1, 55, 2, 53, 55, 53, 4,
-        53, 1001, 56, -1, 56, 1005, 56, 6, 99, 0, 0, 0, 0, 10],
-    phaseSettingSequence: [9,7,8,5,6],
+      -5, 54, 1105, 1, 12, 1, 53, 54, 53, 1008, 54, 0, 55, 1001, 55, 1, 55, 2, 53, 55, 53, 4,
+      53, 1001, 56, -1, 56, 1005, 56, 6, 99, 0, 0, 0, 0, 10],
+    phaseSettingSequence: [9, 7, 8, 5, 6],
     maxThrusterSignal: 18216,
     useFeedback: true
   }
@@ -77,14 +77,14 @@ if (require.main === module) {
       let input = readline.question('Select: ')
 
       if (input === "1") {
-        let p = config.useFeedback ? 
-          runAmplifySequenceWithFeedback(buffer, config.phaseSettingSequence) : 
+        let p = config.useFeedback ?
+          runAmplifySequenceWithFeedback(buffer, config.phaseSettingSequence) :
           runAmplifySequence(buffer, config.phaseSettingSequence);
         const result = await p;
         console.log('Thruster Signal', result);
         console.log('Max', config.maxThrusterSignal, (result === config.maxThrusterSignal) ? '🏆' : '❌');
       } else if (input === "2") {
-        let p = config.useFeedback ? 
+        let p = config.useFeedback ?
           findMaxAmplifySequenceWithFeedback(buffer) :
           findMaxAmplifySequence(buffer);
         const result = await p;

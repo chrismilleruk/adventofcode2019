@@ -15,7 +15,7 @@ describe('render module', () => {
   test('For example, given an image 2 pixels wide and 2 pixels tall, the image data 0222112222120000', async () => {
     const input = `0222112222120000`;
     const w = 2, h = 2;
-    
+
     let rendering = await flattenLayers(createStreamFromString(input, w, h));
 
     expect(rendering.join('')).toBe('0110');
@@ -23,10 +23,10 @@ describe('render module', () => {
 
   test('What message is produced after decoding your image?', async () => {
     const filename = __dirname + '/input.txt';
-    
+
     let rendering = await flattenLayers(createStreamFromFile(filename));
 
     expect(rendering.length).toBe(25 * 6);
   });
-  
+
 });

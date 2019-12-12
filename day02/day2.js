@@ -1,7 +1,7 @@
 const fs = require('fs');
 const readline = require('readline');
 
-const filename = __dirname+'/input.txt';
+const filename = __dirname + '/input.txt';
 
 if (require.main === module) {
   process1202Program(filename).then(result => console.log('1202 program result', result));
@@ -25,7 +25,7 @@ async function* chunksToValues(chunksAsync) {
       // value excludes the comma
       const value = previous.slice(0, eolIndex);
       yield value;
-      previous = previous.slice(eolIndex+1);
+      previous = previous.slice(eolIndex + 1);
     }
   }
   if (previous.length > 0) {
@@ -39,7 +39,7 @@ async function loadInputFile(filename) {
     { encoding: 'utf8', highWaterMark: 1024 });
 
   let result = [];
-  for await (const integer of valuesToIntegers(chunksToValues(readStream)) ) {
+  for await (const integer of valuesToIntegers(chunksToValues(readStream))) {
     result.push(integer)
   }
   // let valuesAsync = await chunksToValues(readStream);
@@ -79,7 +79,7 @@ async function findNounVerbInputs(filename, expectedOutput) {
       let output = executeNounVerbProgram(noun, verb, buffer);
 
       if (output === expectedOutput) {
-        return { noun, verb};
+        return { noun, verb };
       }
     }
   }
@@ -93,9 +93,9 @@ const NounVerbCache = new Map();
 function executeNounVerbProgram(noun, verb, buffer) {
   // Return cached value if we've seen this combo before.
   let cacheKey = `${noun}_${verb}`;
-  if (NounVerbCache.has(cacheKey)){
+  if (NounVerbCache.has(cacheKey)) {
     return NounVerbCache.get(cacheKey);
-  } 
+  }
 
   // The inputs should still be provided to the program by replacing the values at 
   // addresses 1 and 2, just like before. In this program, the value placed in 

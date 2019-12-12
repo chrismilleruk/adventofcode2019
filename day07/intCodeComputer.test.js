@@ -407,7 +407,7 @@ describe('execute command', () => {
 describe('executeProgram', () => {
 
   describe('Opcode 1 & 2: initial and final states of a few more small programs', () => {
-      
+
     test('1,4,5,6,99,1,0', async () => {
       expect.assertions(1);
       let buffer = [1, 4, 5, 6, 99, 1, 0];
@@ -495,8 +495,8 @@ describe('executeProgram', () => {
     // 3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9 (using position mode)
     // 3,3,1105,-1,9,1101,0,0,12,4,12,99,1 (using immediate mode)
     describe.each([
-      ['immediate mode', [3,3,1105,-1,9,1101,0,0,12,4,12,99,1]],
-      ['position mode', [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9]]
+      ['immediate mode', [3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1]],
+      ['position mode', [3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9]]
     ])('Example program using %s', (_, bufferTemplate) => {
 
       // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
@@ -508,7 +508,7 @@ describe('executeProgram', () => {
         [2000, 'non-zero', 1],
         [NaN, 'non-zero', 1],
       ])('Input %i is %s and so returns %i.', async (input, _, output) => {
-        
+
         expect.assertions(1);
         let buffer = bufferTemplate.slice();
         let outputFn = jest.fn();
@@ -520,14 +520,14 @@ describe('executeProgram', () => {
     });
 
   });
-  
+
   describe('Opcode 7 & 8: several programs that take one input, compare it to the value 8', () => {
-    
+
     // 3,9,7,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
     // 3,3,1107,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
     describe.each([
-      [7, 'position mode', [3,9,7,9,10,9,4,9,99,-1,8]],
-      [1107, 'immediate mode', [3,3,1107,-1,8,3,4,3,99]],
+      [7, 'position mode', [3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8]],
+      [1107, 'immediate mode', [3, 3, 1107, -1, 8, 3, 4, 3, 99]],
     ])('Opcode %i: Using %s, consider if the input is less than 8;', (_, __, bufferTemplate) => {
 
       // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
@@ -553,8 +553,8 @@ describe('executeProgram', () => {
     // 3,9,8,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
     // 3,3,1108,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
     describe.each([
-      [8, 'position mode', [3,9,8,9,10,9,4,9,99,-1,8]],
-      [1108, 'immediate mode', [3,3,1108,-1,8,3,4,3,99]],
+      [8, 'position mode', [3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8]],
+      [1108, 'immediate mode', [3, 3, 1108, -1, 8, 3, 4, 3, 99]],
     ])('Opcode %i: Using %s, consider if the input is equal to 8;', (_, __, bufferTemplate) => {
 
       // take an input, then output 0 if the input was zero or 1 if the input was non-zero:
@@ -580,15 +580,15 @@ describe('executeProgram', () => {
   });
 
   describe('Opcodes 5-8: a larger example', () => {
-  
+
     //   Here's a larger example:
 
     // 3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
     // 1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
     // 999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99
-    let bufferTemplate = [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
-      1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
-      999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
+    let bufferTemplate = [3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31,
+      1106, 0, 36, 98, 0, 0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104,
+      999, 1105, 1, 46, 1101, 1000, 1, 20, 4, 20, 1105, 1, 46, 98, 99];
     let outputFn = jest.fn();
 
     test.each([
@@ -648,7 +648,7 @@ describe('executeProgramAsGenerator', () => {
       }
 
       expect(logData.length).toBe(1);
-      expect(logData.map(o=>o.value)).toEqual([4]);
+      expect(logData.map(o => o.value)).toEqual([4]);
     });
 
     test('output input output 4,0,3,0,4,0,99', async () => {

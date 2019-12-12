@@ -343,7 +343,7 @@ describe('execute command', () => {
 describe('executeProgram', () => {
 
   describe('Opcode 1 & 2: initial and final states of a few more small programs', () => {
-      
+
     test('1,4,5,6,99,1,0', () => {
       let buffer = [1, 4, 5, 6, 99, 1, 0];
       executeProgram(buffer);
@@ -420,7 +420,7 @@ describe('executeProgram', () => {
   describe('Opcodes 5-8: (7 & 8) several programs that take one input, compare it to the value 8', () => {
     // 3,9,8,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
     describe('3,9,8,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).', () => {
-      let buffer = [3,9,8,9,10,9,4,9,99,-1,8];
+      let buffer = [3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
       let outputFn = jest.fn();
       test('input 1 is not equal to 8', () => {
         outputFn.mockClear();
@@ -447,11 +447,11 @@ describe('executeProgram', () => {
 
     // 3,9,7,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
     describe('3,9,7,9,10,9,4,9,99,-1,8 - Using position mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).', () => {
-      let buffer = [3,9,7,9,10,9,4,9,99,-1,8];
+      let buffer = [3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8];
       let outputFn = jest.fn();
       test('input 1 is less than 8', () => {
         outputFn.mockClear();
-        
+
         executeProgram(buffer, () => 1, outputFn);
 
         expect(outputFn).toHaveBeenCalledWith(1);
@@ -471,10 +471,10 @@ describe('executeProgram', () => {
         expect(outputFn).toHaveBeenCalledWith(0);
       });
     });
-    
+
     // 3,3,1108,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).
     describe('3,3,1108,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is equal to 8; output 1 (if it is) or 0 (if it is not).', () => {
-      let buffer = [3,3,1108,-1,8,3,4,3,99];
+      let buffer = [3, 3, 1108, -1, 8, 3, 4, 3, 99];
       let outputFn = jest.fn();
       test('input 1 is not equal to 8', () => {
         outputFn.mockClear();
@@ -501,7 +501,7 @@ describe('executeProgram', () => {
 
     // 3,3,1107,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).
     describe('3,3,1107,-1,8,3,4,3,99 - Using immediate mode, consider whether the input is less than 8; output 1 (if it is) or 0 (if it is not).', () => {
-      let buffer = [3,3,1107,-1,8,3,4,3,99];
+      let buffer = [3, 3, 1107, -1, 8, 3, 4, 3, 99];
       let outputFn = jest.fn();
       test('input 1 is less than 8', () => {
         outputFn.mockClear();
@@ -534,7 +534,7 @@ describe('executeProgram', () => {
 
     // 3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9 (using position mode)
     describe('3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9 (using position mode)', () => {
-      let bufferTemplate = [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9];
+      let bufferTemplate = [3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9];
       let outputFn = jest.fn();
       test('input 1 is non-zero', () => {
         let buffer = bufferTemplate.slice();
@@ -564,7 +564,7 @@ describe('executeProgram', () => {
 
     // 3,3,1105,-1,9,1101,0,0,12,4,12,99,1 (using immediate mode)
     describe('3,3,1105,-1,9,1101,0,0,12,4,12,99,1 (using immediate mode)', () => {
-      let bufferTemplate = [3,3,1105,-1,9,1101,0,0,12,4,12,99,1];
+      let bufferTemplate = [3, 3, 1105, -1, 9, 1101, 0, 0, 12, 4, 12, 99, 1];
       let outputFn = jest.fn();
       test('input 1 is non-zero', () => {
         let buffer = bufferTemplate.slice(0);
@@ -593,17 +593,17 @@ describe('executeProgram', () => {
     });
 
   });
-  
+
   describe('Opcodes 5-8: a larger example', () => {
-  
+
     //   Here's a larger example:
 
     // 3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
     // 1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
     // 999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99
-    let bufferTemplate = [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
-      1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
-      999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99];
+    let bufferTemplate = [3, 21, 1008, 21, 8, 20, 1005, 20, 22, 107, 8, 21, 20, 1006, 20, 31,
+      1106, 0, 36, 98, 0, 0, 1002, 21, 125, 20, 4, 20, 1105, 1, 46, 104,
+      999, 1105, 1, 46, 1101, 1000, 1, 20, 4, 20, 1105, 1, 46, 98, 99];
     let outputFn = jest.fn();
 
     // The above example program uses an input instruction to ask for a single number. The program will then output 999 if the input value is below 8, output 1000 if the input value is equal to 8, or output 1001 if the input value is greater than 8.

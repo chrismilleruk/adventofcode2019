@@ -21,7 +21,7 @@ describe('Universal Orbit Map', () => {
     let start = orbitMapData.get('YOU');
     let destination = orbitMapData.get('SAN');
     let distance = shortestDistanceBetweenPlanets(start, destination);
-    
+
     expect(distance).toBe(271);
   });
 });

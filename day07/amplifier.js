@@ -6,8 +6,8 @@ const {
 
 
 async function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
-  let sourceAmp = [4,0,1,2,3];
-  let amplifiers = phaseSequence.map((phaseSetting, id) => { 
+  let sourceAmp = [4, 0, 1, 2, 3];
+  let amplifiers = phaseSequence.map((phaseSetting, id) => {
     let outputs = [];
 
     async function getNextInput() {
@@ -64,7 +64,7 @@ async function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
     amplifiers[4].setOutput(0);
   });
   let output = await amplifiers[4].program;
-  
+
   // for (let i in [0,1,2,3,4]) {
   //   console.log('amp', i, amplifiers[i].outputs);
   // }
@@ -74,7 +74,7 @@ async function runAmplifySequenceWithFeedback(buffer, phaseSequence) {
 async function findMaxAmplifySequenceWithFeedback(buffer) {
   let max = 0;
   let sequence;
-  for (const phaseSequence of phaseSequencePermutations([5,6,7,8,9])) {
+  for (const phaseSequence of phaseSequencePermutations([5, 6, 7, 8, 9])) {
     let result = await runAmplifySequenceWithFeedback(buffer, phaseSequence);
     if (result > max) {
       max = result;
@@ -137,7 +137,7 @@ async function runAmplifySequence(buffer, phaseSequence) {
 async function findMaxAmplifySequence(buffer) {
   let max = 0;
   let sequence;
-  for (const phaseSequence of phaseSequencePermutations([0,1,2,3,4])) {
+  for (const phaseSequence of phaseSequencePermutations([0, 1, 2, 3, 4])) {
     let result = await runAmplifySequence(buffer, phaseSequence);
     if (result > max) {
       max = result;

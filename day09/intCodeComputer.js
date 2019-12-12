@@ -79,7 +79,7 @@ async function executeCommand(buffer, state, inputFn, outputFn) {
         // Parameter mode 1, immediate mode, a parameter is interpreted as a value
         // - if the parameter is 50, its value is simply 50.
         return parameterVal;
-      case '2': 
+      case '2':
         // Parameter mode 2, relative mode, causes the parameter to be interpreted as a relative position
         // - if the parameter is 50, and the relative base is 20, the value stored at address 70 in memory. 
         if (typeof buffer[state.relBase + parameterVal] === 'undefined') {

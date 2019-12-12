@@ -39,7 +39,7 @@ function createStreamFromString(input, width = 25, height = 6) {
 
 async function* layersToStats(layersAsync) {
   for await (const layer of layersAsync) {
-    let stats = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0 };
+    let stats = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0 };
     for (const char of layer) {
       stats[char] += 1;
     }

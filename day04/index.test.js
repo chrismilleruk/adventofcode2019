@@ -31,7 +31,7 @@ describe('Day 4: Secure Container', () => {
     // 112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
     test('112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.', () => {
       expect(testPasswordScheme2('112233')).toBe(true);
-    }) 
+    })
 
     // 123444 no longer meets the criteria (the repeated 44 is part of a larger group of 444).
     test('123444 no longer meets the criteria (the repeated 44 is part of a larger group of 444).', () => {

@@ -15,7 +15,7 @@ async function buildOrbitMap(inputStream) {
     let orbitInner = getOrbitObject(inner);
     orbitInner.addPlanet(orbitOuter);
   }
-  
+
   return orbitMap;
 
   function getOrbitObject(name) {

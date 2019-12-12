@@ -19,7 +19,7 @@ if (require.main === module) {
       let destination = orbitMapData.get('SAN');
       let distance = shortestDistanceBetweenPlanets(start, destination);
       console.log('Distance from YOU to SAN: ', distance);
-      
+
     } catch (ex) {
       console.error(ex);
     }

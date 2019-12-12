@@ -9,7 +9,7 @@ describe('Amplification Circuit', () => {
     const buffer = await loadInputFile(filename);
     const result = await findMaxAmplifySequence(buffer);
     expect(result.max).toBe(212460);
-    expect(result.sequence).toStrictEqual([ 3, 2, 0, 1, 4 ]);
+    expect(result.sequence).toStrictEqual([3, 2, 0, 1, 4]);
 
   });
 });
