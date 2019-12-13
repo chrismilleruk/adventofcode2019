@@ -1,7 +1,5 @@
-const {
-  executeProgram,
-  loadInputFile
-} = require('./intCodeComputer');
+const { executeProgram } = require('../lib/intCodeComputer');
+const { loadInputFile } = require('../lib/loadBuffer');
 const readline = require('readline-sync');
 
 const filename = __dirname + '/input.txt';

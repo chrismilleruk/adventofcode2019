@@ -1,7 +1,5 @@
-const {
-  loadInputFile,
-  executeProgram
-} = require('./intCodeComputer');
+const { executeProgram } = require('../lib/intCodeComputer');
+const { loadInputFile } = require('../lib/loadBuffer');
 
 let filename = __dirname + '/input.txt';
 
