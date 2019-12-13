@@ -1,5 +1,5 @@
-const { loadInputFile } = require('../day05/loadBuffer');
-const { executeProgramAsGenerator } = require('./intCodeComputer');
+const { loadInputFile } = require('../lib/loadBuffer');
+const { executeProgramAsGenerator } = require('../lib/intCodeComputer');
 
 let filename = __dirname + '/input.txt';
 
