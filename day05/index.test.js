@@ -11,9 +11,7 @@ describe('Run Diagnostic', () => {
     let inputFn = jest.fn(() => 1);
     let outputFn = jest.fn();
 
-    expect(() => {
-      executeProgram(buffer, inputFn, outputFn);
-    }).not.toThrow();
+    await executeProgram(buffer, inputFn, outputFn);
 
     expect(inputFn).toHaveBeenCalledTimes(1);
     expect(outputFn).toHaveBeenCalledTimes(10);
@@ -31,9 +29,7 @@ describe('Run Diagnostic', () => {
     let inputFn = jest.fn(() => 5);
     let outputFn = jest.fn();
 
-    expect(() => {
-      executeProgram(buffer, inputFn, outputFn);
-    }).not.toThrow();
+    await executeProgram(buffer, inputFn, outputFn);
 
     expect(inputFn).toHaveBeenCalledTimes(1);
     expect(outputFn).toHaveBeenCalledTimes(1);

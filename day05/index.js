@@ -17,7 +17,7 @@ if (require.main === module) {
     }
 
     try {
-      executeProgram(buffer, inputFn, outputFn);
+      await executeProgram(buffer, inputFn, outputFn);
     } catch (ex) {
       console.error(ex);
     }

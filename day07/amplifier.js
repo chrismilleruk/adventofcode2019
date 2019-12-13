@@ -2,7 +2,7 @@
 const {
   executeProgram,
   executeProgramAsGenerator
-} = require('./intCodeComputer');
+} = require('../lib/intCodeComputer');
 
 
 async function runAmplifySequenceWithFeedback(buffer, phaseSequence) {

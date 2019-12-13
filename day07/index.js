@@ -1,4 +1,4 @@
-const { loadInputFile } = require('../day05/loadBuffer');
+const { loadInputFile } = require('../lib/loadBuffer');
 const {
   runAmplifySequence,
   findMaxAmplifySequence,
