@@ -85,7 +85,7 @@ describe('Amplifier Controller Software', () => {
         expect(result).toBe(maxThrusterSignal);
       });
 
-      test('Find best settings', async () => {
+      test.skip('Find best settings', async () => {
         expect.assertions(2);
         const result = await findMaxAmplifySequenceWithFeedback(buffer);
         expect(result.sequence).toStrictEqual(phaseSettingSequence);
@@ -113,7 +113,7 @@ describe('Amplifier Controller Software', () => {
         expect(result).toBe(maxThrusterSignal);
       });
 
-      test('Find best settings', async () => {
+      test.skip('Find best settings', async () => {
         const result = await findMaxAmplifySequenceWithFeedback(buffer);
         expect(result.sequence).toStrictEqual(phaseSettingSequence);
         expect(result.max).toBe(maxThrusterSignal);

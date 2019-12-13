@@ -1,6 +1,6 @@
-const calculateFuel = require('./day1').calculateFuel;
-const calculateFuelRecursive = require('./day1').calculateFuelRecursive;
-const processInputFile = require('./day1').processInputFile;
+const calculateFuel = require('.').calculateFuel;
+const calculateFuelRecursive = require('.').calculateFuelRecursive;
+const processInputFile = require('.').processInputFile;
 
 describe('Day 1: The Tyranny of the Rocket Equation', () => {
   /*

@@ -1,24 +1,26 @@
-const { loadInputFile } = require('../lib/loadBuffer');
+const { loadIntcodeFile } = require('../lib/loadIntcode');
 const {
   runAmplifySequence,
   findMaxAmplifySequence,
   runAmplifySequenceWithFeedback,
   findMaxAmplifySequenceWithFeedback
 } = require('./amplifier');
-const readline = require('readline-sync');
+
+const readline = require('readline');
+const chalk = require('chalk');
 
 const filename = __dirname + '/input.txt';
 
 let configs = [
   {
-    title: 'Part 1: Buffer from input file',
+    title: 'Part 1: Amplifier Controller Software. Try every combination of phase settings on the amplifiers. ',
     buffer: filename,
     phaseSettingSequence: [3, 2, 0, 1, 4],
     maxThrusterSignal: 212460,
     useFeedback: false
   },
   {
-    title: 'Part 2: Buffer from input file',
+    title: 'Part 2: Try every combination of the new phase settings on the amplifier feedback loop.',
     buffer: filename,
     phaseSettingSequence: [8, 5, 9, 6, 7],
     maxThrusterSignal: 21844737,
@@ -69,21 +71,21 @@ let configs = [
 if (require.main === module) {
   (async () => {
     try {
-      const config = getConfig();
-      const buffer = await (typeof config.buffer === "string" ? loadInputFile(config.buffer) : config.buffer);
+      const config = await getConfig();
+      const buffer = await (typeof config.buffer === "string" ? loadIntcodeFile(config.buffer) : config.buffer);
 
-      console.log(1, 'Run Amplifier Sequence');
-      console.log(2, 'Find Max Amplifier Sequence');
-      let input = readline.question('Select: ')
+      const actions = ['Run Amplifier with best known Phase Setting Sequence',
+        'Try every combination to find best Amplifier Phase Setting Sequence'];
+      let input = await getAction(actions);
 
-      if (input === "1") {
+      if (input === 1) {
         let p = config.useFeedback ?
           runAmplifySequenceWithFeedback(buffer, config.phaseSettingSequence) :
           runAmplifySequence(buffer, config.phaseSettingSequence);
         const result = await p;
         console.log('Thruster Signal', result);
         console.log('Max', config.maxThrusterSignal, (result === config.maxThrusterSignal) ? '🏆' : '❌');
-      } else if (input === "2") {
+      } else if (input === 2) {
         let p = config.useFeedback ?
           findMaxAmplifySequenceWithFeedback(buffer) :
           findMaxAmplifySequence(buffer);
@@ -100,16 +102,61 @@ if (require.main === module) {
 }
 
 
-function getConfig() {
-  configs.forEach((config, index) => {
-    console.log(index, config.title);
+async function getConfig() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
   });
-  let inputString = readline.question('Select: ');
-  let input = parseInt(inputString, 10);
-  if (configs[input]) {
-    return configs[input];
-  }
-  throw `Config ${inputString} not found`;
+  
+  return new Promise((resolve, reject) => {
+    // Print options
+    configs.forEach((config, index) => {
+      console.log(index + 1, config.title);
+    });
+
+    rl.question('Select: ', (inputString) => {
+      rl.close();
+
+      let input = parseInt(inputString, 10);
+      let config = configs[input -1];
+      if (config) {
+        readline.moveCursor(rl.input, 0, -1 * configs.length - 1);
+        readline.clearScreenDown(rl.input);
+        console.log(chalk.green(config.title));
+        resolve(config);
+      }
+      reject(`Config ${inputString} not found`);
+    });
+  });
+}
+
+async function getAction(actions) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve, reject) => {
+    // Print actions
+    actions.forEach((action, index) => {
+      console.log(index + 1, action);
+    });
+
+    rl.question('Select: ', (inputString) => {
+      rl.close();
+      
+      let input = parseInt(inputString, 10);
+      let action = actions[input - 1];
+      if (action) {
+        readline.moveCursor(rl.input, 0, -3);
+        readline.clearScreenDown(rl.input);
+        console.log(chalk.green(action));
+        resolve(input);
+      }
+      reject(`Config ${inputString} not found`);
+    });
+    
+  });
 }
 
 module.exports = {

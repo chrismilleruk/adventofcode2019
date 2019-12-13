@@ -1,4 +1,4 @@
-const { executeCommand, executeProgram, loadInputFile, process1202Program, executeNounVerbProgram, findNounVerbInputs } = require('./day2');
+const { executeCommand, executeProgram, loadInputFile, process1202Program, executeNounVerbProgram, findNounVerbInputs } = require('.');
 
 let filename = __dirname + '/input.txt';
 
@@ -164,7 +164,7 @@ describe('Day 2: 1202 Program Alarm', () => {
     });
 
     describe('complete the gravity assist', () => {
-      test.skip('find 64 29 for 19690720', async () => {
+      test('find 64 29 for 19690720', async () => {
         let { noun, verb } = await findNounVerbInputs(filename, 19690720);
         expect(noun).toBe(64);
         expect(verb).toBe(29);

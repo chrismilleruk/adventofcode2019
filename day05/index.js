@@ -1,12 +1,15 @@
 const { executeProgram } = require('../lib/intCodeComputer');
-const { loadInputFile } = require('../lib/loadBuffer');
+const { loadIntcodeFile } = require('../lib/loadIntcode');
 const readline = require('readline-sync');
 
 const filename = __dirname + '/input.txt';
 
 if (require.main === module) {
   (async () => {
-    const buffer = await loadInputFile(filename);
+    const buffer = await loadIntcodeFile(filename);
+
+    console.log('Part 1: After providing 1, what diagnostic code does the program produce?');
+    console.log('Part 2: What is the diagnostic code for system ID 5?');
 
     function inputFn() {
       let input = readline.question("Diagnostic System ID: ");

@@ -1,7 +1,7 @@
-const { createStreamFromString, createStreamFromFile } = require('./loadInput');
+const { createStreamFromString, createStreamFromFile } = require('../lib/createStream');
 
 
-function loadInputFile(filename) {
+function loadOrbitFile(filename) {
   let inputStream = createStreamFromFile(filename);
   return buildOrbitMap(inputStream);
 }
@@ -106,6 +106,6 @@ module.exports = {
   getOrbitChecksum,
   shortestDistanceBetweenPlanets,
   buildOrbitMap,
-  loadInputFile,
+  loadOrbitFile,
   Planet
 };

@@ -1,12 +1,12 @@
 const { executeProgram } = require('../lib/intCodeComputer');
-const { loadInputFile } = require('../lib/loadBuffer');
+const { loadIntcodeFile } = require('../lib/loadIntcode');
 
 let filename = __dirname + '/input.txt';
 
 describe('Run Diagnostic', () => {
-  test('After providing 1, what diagnostic code does the program produce?', async () => {
+  test.skip('After providing 1, what diagnostic code does the program produce?', async () => {
 
-    const buffer = await loadInputFile(filename);
+    const buffer = await loadIntcodeFile(filename);
 
     let inputFn = jest.fn(() => 1);
     let outputFn = jest.fn();
@@ -24,7 +24,7 @@ describe('Run Diagnostic', () => {
     // thermal radiator controller. This diagnostic test suite only outputs one number, 
     // the diagnostic code.
 
-    const buffer = await loadInputFile(filename);
+    const buffer = await loadIntcodeFile(filename);
 
     let inputFn = jest.fn(() => 5);
     let outputFn = jest.fn();

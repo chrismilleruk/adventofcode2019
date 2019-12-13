@@ -1,7 +1,7 @@
 const {
   createStreamFromString,
   createStreamFromFile
-} = require('./loadInput');
+} = require('../lib/createStream');
 const {
   getOrbitChecksum,
   buildOrbitMap,

@@ -1,7 +1,7 @@
 const {
   getOrbitChecksum,
   shortestDistanceBetweenPlanets,
-  loadInputFile
+  loadOrbitFile
 } = require('./orbitComputer');
 
 
@@ -9,7 +9,7 @@ const filename = __dirname + '/input.txt';
 
 if (require.main === module) {
   (async () => {
-    const orbitMapData = await loadInputFile(filename);
+    const orbitMapData = await loadOrbitFile(filename);
 
     try {
       let checksum = getOrbitChecksum(orbitMapData);

@@ -4,16 +4,14 @@ if (require.main === module) {
   (async () => {
     let count = 0;
     for (let password of findValidPasswords('353096', '843212', testPasswordScheme1)) {
-      console.log(password);
       count++;
     }
-    console.log('Total', count);
+    console.log('Total for password scheme 1:', count);
     count = 0;
     for (let password of findValidPasswords('353096', '843212', testPasswordScheme2)) {
-      console.log(password);
       count++;
     }
-    console.log('Total', count);
+    console.log('Total for password scheme 2:', count);
   })();
 }
 
