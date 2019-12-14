@@ -9,8 +9,8 @@ async function* getCoords(linesAsync) {
 
     let x = 0;
     for (const value of line) {
-      if (value === '#') {
-        yield [ x, y ];
+      if (['#', 'X'].indexOf(value) > -1) {
+        yield [x, y];
       }
 
       x += 1;
@@ -30,23 +30,36 @@ async function detectAsteroids(linesAsync) {
 
   for (const candidate of asteroids.values()) {
 
-    const angles = new Set();
-    for (const target of [...asteroids.values()].filter(x => candidate.key !== x.key)) {
-      // soh cah toa
-      let angle = Math.atan2(
-        target.coord[0] - candidate.coord[0],
-        target.coord[1] - candidate.coord[1]
-        );
-      let angleDeg = angle * (180/Math.PI);
-
-      angles.add(angleDeg);
-    }
+    const angles = getAsteroidsByAngle(asteroids, candidate);
 
     // Number of unique angles = number of asteroids detected.
     candidate.detected = angles.size;
   }
 
   return asteroids;
+}
+
+function getAsteroidsByAngle(asteroids, candidate) {
+  const angles = new Map();
+  for (const target of [...asteroids.values()].filter(x => candidate.key !== x.key)) {
+    const deltaX = target.coord[0] - candidate.coord[0];
+    const deltaY = target.coord[1] - candidate.coord[1];
+    let angleRad = Math.atan2(deltaX, deltaY);
+    let angle = angleRad * (180 / Math.PI);
+    let distance = Math.abs(deltaX) + Math.abs(deltaY);
+
+    if (!angles.has(angle)) {
+      angles.set(angle, []);
+    }
+
+    angles.get(angle).push({
+      key: target.key,
+      coord: target.coord,
+      distance,
+      angle
+    });
+  }
+  return angles;
 }
 
 function findBestLocation(asteroids) {
@@ -59,5 +72,24 @@ function findBestLocation(asteroids) {
   }, { detected: 0 })
 }
 
+function* fireRotatingLaser(asteroids, station) {
+  const asteroidsByAngle = getAsteroidsByAngle(asteroids, station);
+  let directions = [...asteroidsByAngle.keys()].sort((a, b) => b - a);
 
-module.exports = { getCoords, detectAsteroids, findBestLocation};
+  while (directions.length > 0) {
+    let d = directions.shift();
+
+    // get all asteroids on this trajectory, ordered by closest first.
+    let asteroids = asteroidsByAngle.get(d).sort((a, b) => a.distance - b.distance);
+
+    // shoot the closest asteroid.
+    yield asteroids.shift();
+
+    // if asteroids remain on this angle, pop it on the stack for the next round.
+    if (asteroids.length > 0) {
+      directions.push(d);
+    }
+  }
+}
+
+module.exports = { getCoords, detectAsteroids, findBestLocation, fireRotatingLaser };
