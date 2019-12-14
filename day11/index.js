@@ -5,17 +5,20 @@ const readline = require('readline');
 const chalk = require('chalk');
 
 const filename = __dirname + '/input.txt';
+const DIRECT_RENDER_MODE = true;
 
 const configs = [
   {
     title: 'start color is black',
     initialColor: 0,
-    paintedPanels: 2418
+    paintedPanels: 2418,
+    render: { width: 48, height: 34, offsetX: -52, offsetY: -48 },
   },
   {
     title: 'start color is white',
     initialColor: 1,
-    paintedPanels: 249
+    paintedPanels: 249,
+    render: { width: 22, height: 3, offsetX: 0, offsetY: -5 },
   },
 ]
 
@@ -37,24 +40,47 @@ if (require.main === module) {
   })();
 }
 
+async function* delay(ms, iteratorAsync) {
+  for await (const value of iteratorAsync) {
+    if (!!ms) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    }
+    yield value;
+  }
+}
 async function runPaintingRobotWithConfig(program, config) {
   console.log('Painting...');
   const panels = initPanels();
   const panel0 = panels.getPanel([0, 0]);
   panel0.color = config.initialColor;
+  const t0 = Date.now();
 
-  for await (const args of paintingRobotEventGenerator(panels, program)) {
-    if (typeof onPaint === "function")
-      onPaint.apply(panels, args);
+  if (DIRECT_RENDER_MODE) {
+    const cursor = preparePlotArea(process.stdout, config.render.width, config.render.height);  
+    const panelsAsync = paintingRobotEventGenerator(panels, program);
+    const slowPanelsAsync = delay(0, panelsAsync);
+    await plotPanels(config.render.offsetX, config.render.offsetY, panelsAsync, cursor);
+  
+    cursor.close(Date.now() - t0, 'ms');
+  
+  } else {
+    for await (const args of paintingRobotEventGenerator(panels, program)) {
+      if (typeof onPaint === "function")
+        onPaint.apply(panels, args);
+    }
+    renderAllPanels(process.stdout, panels);
+    
+    console.log(Date.now() - t0, 'ms');
   }
 
-  renderAllPanels(process.stdout, panels);
   let paintedPanels = [...panels.values()].filter(panel => panel.coats > 0);
 
   console.log('Panels Painted', paintedPanels.length, (paintedPanels.length === config.paintedPanels) ? '🏆' : '❌');
 }
 
-function onPaint(panel, state) {
+function onPaint(state, panel) {
   readline.moveCursor(process.stdout, 0, -1);  // move cursor to beginning of line
 
   let colorFn = panel.color ? chalk.bgWhite.red : chalk.bgBlack.blue;

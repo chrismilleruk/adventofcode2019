@@ -5,7 +5,7 @@ function renderAllPanels(writeStream, panels) {
 
   const cursor = preparePlotArea(writeStream, plotWidth, plotHeight);
   
-  plotPanels(offsetX, offsetY, panels, cursor);
+  plotPanelsSync(offsetX, offsetY, panels, cursor);
 
   cursor.close('Extents', plotWidth, plotHeight, offsetX, offsetY);
   return;
@@ -38,7 +38,6 @@ function preparePlotArea(writeStream, width, height) {
     console.log('┃' + ''.padEnd(width, ' ') + '┃');
   }
   console.log('┗' + ''.padEnd(width, '━') + '┛');
-  // writeStream.moveCursor(1, -(height + 1));
   writeStream.moveCursor(1, -2);
 
   let cursor = {
@@ -56,7 +55,6 @@ function preparePlotArea(writeStream, width, height) {
       cursor.x += chars.length;
     },
     close: (...args) => {
-      // cursor.moveTo(0, height);
       cursor.moveTo(0, -1);
       console.log.apply(console, args);
     }
@@ -65,41 +63,52 @@ function preparePlotArea(writeStream, width, height) {
   return cursor;
 }
 
-function plotPanels(xMin, yMin, panels, cursor) {
+async function plotPanels(xMin, yMin, panelsAsync, cursor) {
   const blocks = new Map();
   const offset = {
     x: xMin * -1,
     y: yMin * -1
   };
-  for (panel of panels.values()) {
-    plotPanelRelative(panel, cursor, offset);
+  for await (panel of panelsAsync) {
+    plotPanelRelative(panel[1], cursor, blocks, offset);
   }
+}
 
-
-  function plotPanelRelative(panel, cursor, offset) {
-    const plotCoordX = Math.floor((panel.coord[0] + offset.x) / 2);
-    const plotCoordY = Math.floor((panel.coord[1] + offset.y) / 2);
-    const blockCoordX = Math.abs(panel.coord[0]) % 2;
-    const blockCoordY = Math.abs(panel.coord[1]) % 2;
-    const blockKey = `${plotCoordX},${plotCoordY}`;
-    let block = blocks.get(blockKey);
-    if (!block) {
-      block = [
-        [0, 0],
-        [0, 0]
-      ];
-      blocks.set(blockKey, block);
-    }
-
-    // Set block data to panel color
-    block[blockCoordY][blockCoordX] = panel.color;
-
-    // Re-render this block.
-    cursor.moveTo(plotCoordX, plotCoordY);
-    cursor.write(getBlockChar(block));
+function plotPanelsSync(xMin, yMin, panels, cursor) {
+  const blocks = new Map();
+  const offset = {
+    x: xMin * -1,
+    y: yMin * -1
+  };
+  for (panel of panels) {
+    plotPanelRelative(panel[1], cursor, blocks, offset);
   }
 
 }
+
+function plotPanelRelative(panel, cursor, blocks, offset) {
+  const plotCoordX = Math.floor((panel.coord[0] + offset.x) / 2);
+  const plotCoordY = Math.floor((panel.coord[1] + offset.y) / 2);
+  const blockCoordX = Math.abs(panel.coord[0]) % 2;
+  const blockCoordY = Math.abs(panel.coord[1]) % 2;
+  const blockKey = `${plotCoordX},${plotCoordY}`;
+  let block = blocks.get(blockKey);
+  if (!block) {
+    block = [
+      [0, 0],
+      [0, 0]
+    ];
+    blocks.set(blockKey, block);
+  }
+
+  // Set block data to panel color
+  block[blockCoordY][blockCoordX] = panel.color;
+
+  // Re-render this block.
+  cursor.moveTo(plotCoordX, plotCoordY);
+  cursor.write(getBlockChar(block));
+}
+
 
 
 function getBlockChar(block) {

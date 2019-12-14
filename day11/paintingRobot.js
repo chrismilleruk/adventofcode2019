@@ -83,7 +83,7 @@ async function* paintingRobotEventGenerator(panels, programBuffer) {
     state.coord[0] += delta[0];
     state.coord[1] += delta[1];
 
-    yield [panel, state];
+    yield [state, panel];
   }
 
   function inputFn() {
