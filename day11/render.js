@@ -31,14 +31,18 @@ function calculatePlotExtents(panels, writeStream) {
   return { plotWidth, plotHeight, offsetX, offsetY };
 }
 
-function preparePlotArea(writeStream, width, height) {
+function preparePlotArea(writeStream, width, height, invertYAxis = -1) {
   const boxLines = ['┃', '━', '┏', '┓', '┗', '┛'];
   console.log('┏' + ''.padEnd(width, '━') + '┓');
   for (let i = height; i--;) {
     console.log('┃' + ''.padEnd(width, ' ') + '┃');
   }
   console.log('┗' + ''.padEnd(width, '━') + '┛');
-  writeStream.moveCursor(1, -2);
+  if (invertYAxis === -1) {
+    writeStream.moveCursor(1, -2); // bottom left
+  } else {
+    writeStream.moveCursor(1, -(height + 1));
+  }
 
   let cursor = {
     x: 0,
@@ -46,7 +50,7 @@ function preparePlotArea(writeStream, width, height) {
     moveTo: (x, y) => {
       let dx = x - cursor.x;
       let dy = y - cursor.y;
-      writeStream.moveCursor(dx, -dy);
+      writeStream.moveCursor(dx, dy * invertYAxis);
       cursor.x = x;
       cursor.y = y;
     },
@@ -55,7 +59,11 @@ function preparePlotArea(writeStream, width, height) {
       cursor.x += chars.length;
     },
     close: (...args) => {
-      cursor.moveTo(0, -1);
+      if (invertYAxis === -1) {
+        cursor.moveTo(0, -1);
+      } else {
+        cursor.moveTo(0, height + 2);
+      }
       console.log.apply(console, args);
     }
   };
