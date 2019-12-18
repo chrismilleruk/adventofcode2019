@@ -14,7 +14,7 @@ describe('Nano Factory', () => {
     // D into E, and finally E into FUEL. (30 A is produced because its reaction requires that it
     // is created in increments of 10.)
 
-    test('Example 1 requires 31 ORE to produce 1 FUEL', async () => {
+    test('requires 31 ORE to produce 1 FUEL', async () => {
       const linesAsync = createStreamFromString(examples.example1);
       const factory = await NanoFactory.parseStream(linesAsync);
 
@@ -23,11 +23,11 @@ describe('Nano Factory', () => {
       expect(factory.fuelProduced).toBe(1);
       expect(factory.oreUsed).toBe(31);
       expect(factory.waste).toEqual([
-        { units: 2, element: 'A' }
+        { element: 'A', units: 2 }
       ]);
     })
 
-    test('Example 1 cannot produce any FUEL from 10 ORE', async () => {
+    test('cannot produce any FUEL from 10 ORE', async () => {
       const linesAsync = createStreamFromString(examples.example1);
       const factory = await NanoFactory.parseStream(linesAsync, 10);
 
@@ -35,31 +35,47 @@ describe('Nano Factory', () => {
 
       expect(factory.fuelProduced).toBe(0);
       expect(factory.oreUsed).toBe(10);
-    })
-
-    test('Example 1 can produce 3 FUEL from 100 ORE', async () => {
-      const linesAsync = createStreamFromString(examples.example1);
-      const factory = await NanoFactory.parseStream(linesAsync, 100);
-
-      factory.produceFuel(3);
-
-      expect(factory.fuelProduced).toBe(3);
-      expect(factory.oreUsed).toBe(93);
       expect(factory.waste).toEqual([
-        { units: 6, element: 'A' }
+        { element: 'A', units: 10 },
       ]);
     })
 
-    test('Example 1 can only produce 3 FUEL from 100 ORE', async () => {
+    test('can produce 5 FUEL from 145 ORE', async () => {
       const linesAsync = createStreamFromString(examples.example1);
-      const factory = await NanoFactory.parseStream(linesAsync, 100);
+      const factory = await NanoFactory.parseStream(linesAsync, 145);
 
       factory.produceFuel(5);
 
-      expect(factory.fuelProduced).toBe(3);
-      expect(factory.oreUsed).toBe(93);
+      expect(factory.fuelProduced).toBe(5);
+      expect(factory.oreUsed).toBe(145);
       expect(factory.waste).toEqual([
-        { units: 6, element: 'A' }
+        /* no waste */
+      ]);
+    })
+
+    test('can only produce 5 FUEL from 145 ORE', async () => {
+      const linesAsync = createStreamFromString(examples.example1);
+      const factory = await NanoFactory.parseStream(linesAsync, 145);
+
+      factory.produceAllFuel();
+
+      expect(factory.fuelProduced).toBe(5);
+      expect(factory.oreUsed).toBe(145);
+      expect(factory.waste).toEqual([
+        /* no waste */
+      ]);
+    })
+
+    test('can only produce 5 FUEL from 175 ORE', async () => {
+      const linesAsync = createStreamFromString(examples.example1);
+      const factory = await NanoFactory.parseStream(linesAsync, 175);
+
+      factory.produceAllFuel();
+
+      expect(factory.fuelProduced).toBe(5);
+      expect(factory.oreUsed).toBe(175);
+      expect(factory.waste).toEqual([
+        { element: 'A', units: 30 },
       ]);
     })
   })
@@ -133,7 +149,7 @@ describe('Nano Factory', () => {
     const linesAsync = createStreamFromString(examples.example3);
     const factory = await NanoFactory.parseStream(linesAsync);
 
-    factory.produceRemainingFuel();
+    factory.produceAllFuel();
 
     expect(factory.fuelProduced).toBe(82892753);
   })

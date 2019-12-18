@@ -26,7 +26,7 @@ if (require.main === module) {
       console.log(chalk.grey('Waste'), factory.waste);
 
       console.log(chalk.grey('...producing remaining fuel...'));
-      factory.produceRemainingFuel();
+      factory.produceAllFuel();
 
       console.log('Total fuel produced', factory.fuelProduced, (factory.fuelProduced === config.trillionOreFuel) ? '🏆' : '❌');
       console.log(chalk.grey('Time taken'), Date.now() - t0, chalk.yellow('ms'));

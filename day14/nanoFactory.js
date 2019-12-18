@@ -20,11 +20,23 @@ class NanoFactory {
   }
 
   addReaction(reaction) {
-    reaction.onRequest = (units, element) => this.produceElement(units, element);
+    reaction.factory = this;
     this._reactions.set(reaction.output.element, reaction);
   }
 
-  produceRemainingFuel() {
+  getReaction(element) {
+    if (element === 'ORE') {
+      return { produceOutput: (units) => this.produceOre(units) };
+    }
+
+    const elementReaction = this._reactions.get(element);
+    if (!elementReaction) {
+      throw `${element} not found`
+    }
+    return elementReaction;
+  }
+
+  produceAllFuel() {
     return this.produceFuel(ONE_TRILLION);
   }
 
@@ -36,21 +48,24 @@ class NanoFactory {
 
   produceElement(units, element) {
     if (element === 'ORE') {
-      if (this._oreAvailable < units) {
-        return { units: 0, element };
-      }
-      this._oreAvailable -= units;
-      this._oreUsed += units;
-      return { units, element };
+      return this.produceOre(units);
     }
 
-    const elementReaction = this._reactions.get(element);
-    if (!elementReaction) {
-      throw `${element} not found`
-    }
-
+    const elementReaction = this.getReaction(element);
     const partial = (element === 'FUEL');
     return elementReaction.produceOutput(units, partial);
+  }
+
+  produceOre(units) {
+    const element = 'ORE';
+
+    if (this._oreAvailable < units) {
+      return { units: 0, element };
+    }
+
+    this._oreAvailable -= units;
+    this._oreUsed += units;
+    return { units, element };
   }
 
   get fuelProduced() {
@@ -95,7 +110,25 @@ class Reaction {
     this._inputs = inputs;
     this._output = output;
     this._stock = 0;
-    this.onRequest = () => { throw `Reaction ${description}: onRequest not set.` };
+  }
+
+  get element() {
+    return this._output.element;
+  }
+  
+  /**
+   * @param {NanoFactory} factory
+   */
+  set factory(factory) {
+    this._factory = factory;
+  }
+
+  get inputs() {
+    if (!this._factory) throw 'factory not set.';
+    return this._inputs.map((input) => {
+      input.reaction = this._factory.getReaction(input.element);
+      return input;
+    })
   }
 
   get output() {
@@ -106,35 +139,70 @@ class Reaction {
     return this._stock;
   }
 
-  produceOutput(units, producePartialOutput = false) {
-    while (this._stock < units) {
+  getReaction(element) {
+    if (!this._factory) throw 'factory not set.';
+    return this._factory.getReaction(element);
+  }
 
-      // If we don't have enough in stock produce some more.
-      for (const input of this._inputs) {
-        const produceInput = this.onRequest(input.units, input.element);
+  singleReaction() {
+    const mixingBowl = [];
 
-        if (produceInput.units < input.units) {
-          // One of our inputs failed to produce the requested amount of chemicals.
-          const output = { units: 0, element: this._output.element };
-          if (producePartialOutput) {
-            // We cannot produce any more output than we have already accrued in stock.
-            output.units = this._stock;
-            this._stock = 0;
+    for (const input of this.inputs) {
+      const reactionResult = input.reaction.produceOutput(input.units);
+      mixingBowl.push(reactionResult);
+
+      // Check if input reaction failed to produce the requested amount of chemicals.
+      if (reactionResult.units < input.units) {
+
+        // Return unused elements to their reaction stock.
+        let item;
+        while (item = mixingBowl.pop()) {
+          if (item.reaction) {
+            item.reaction.returnElements(item.units);
           }
-          return output;
         }
+        
+        break;
+      }
+    }
+
+    // If we have nothing in the mixing bowl the reaction failed.
+    return mixingBowl.length > 0;
+  } 
+
+  /**
+   * 
+   * @param {Number} unitsRequested 
+   */
+  produceOutput(unitsRequested) {
+    // If we don't have enough in stock produce some more until we do.
+    while (this._stock < unitsRequested) {
+      
+      if (!this.singleReaction()) {
+        // If the reaction failed, we can return only as many units as we have in stock.
+        unitsRequested = this._stock;
+        break;
       }
 
-      // If we got all the inputs, we can add a fixed amount of output chemicals to our stock.
+      // If the reaction worked, we can add a fixed amount of output chemicals to our stock.
       this._stock += this._output.units;
     }
 
+    // Remove the demand from the stock.
+    this._stock -= unitsRequested;
 
-    // this._stock = unitsProduced - units;
-    this._stock -= units;
-    return { units, element: this._output.element };
+    return { units: unitsRequested, element: this.element, reaction: this };
+  }
+
+  /**
+   * Return unused elements to our stock.
+   * @param {Number} units 
+   */
+  returnElements(units) {
+    this._stock += units;
   }
 }
 
 
 module.exports = { NanoFactory };
+
