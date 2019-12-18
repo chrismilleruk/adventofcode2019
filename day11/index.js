@@ -1,6 +1,6 @@
 const { loadIntcodeFile } = require('../lib/loadIntcode');
 const { paintingRobot, paintingRobotEventGenerator, initPanels } = require('./paintingRobot');
-const { renderAllPanels, calculatePlotExtents, preparePlotArea, plotPanels } = require('./render');
+const { renderAllPanels, calculatePlotExtents, preparePlotArea, plotPanels } = require('../lib/render');
 const readline = require('readline');
 const chalk = require('chalk');
 

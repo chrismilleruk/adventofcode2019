@@ -1,6 +1,6 @@
 const { loadIntcodeFile } = require('../lib/loadIntcode');
 const { playArcadeGame } = require('./arcadeGame');
-const { calculatePlotExtents, preparePlotArea, plotPanels } = require('../day11/render');
+const { calculatePlotExtents, preparePlotArea, plotPanels } = require('../lib/render');
 const readline = require('readline');
 const chalk = require('chalk');
 
