@@ -1,6 +1,6 @@
 const { loadIntcodeFile } = require('../lib/loadIntcode');
-const { paintingRobot, paintingRobotEventGenerator, initPanels } = require('./paintingRobot');
-const { renderAllPanels, calculatePlotExtents, preparePlotArea, plotPanels } = require('../lib/render');
+const { paintingRobotEventGenerator, initPanels } = require('./paintingRobot');
+const { renderAllPanels, preparePlotArea, plotPanels, isRoomToRender, waitForRoomToRender, YAXIS } = require('../lib/render');
 const readline = require('readline');
 const chalk = require('chalk');
 
@@ -12,15 +12,15 @@ const configs = [
     title: 'start color is black',
     initialColor: 0,
     paintedPanels: 2418,
-    render: { width: 48, height: 34, offsetX: -52, offsetY: -48 },
+    render: { width: 48, height: 34, offset: { x: 52, y: 48 }},
   },
   {
     title: 'start color is white',
     initialColor: 1,
     paintedPanels: 249,
-    render: { width: 22, height: 3, offsetX: 0, offsetY: -5 },
+    render: { width: 22, height: 3, offset: { x: 0, y: 5 }},
   },
-]
+];
 
 if (require.main === module) {
   (async () => {
@@ -40,16 +40,6 @@ if (require.main === module) {
   })();
 }
 
-async function* delay(ms, iteratorAsync) {
-  for await (const value of iteratorAsync) {
-    if (!!ms) {
-      await new Promise((resolve) => {
-        setTimeout(resolve, ms);
-      });
-    }
-    yield value;
-  }
-}
 async function runPaintingRobotWithConfig(program, config) {
   console.log('Painting...');
   const panels = initPanels();
@@ -57,11 +47,11 @@ async function runPaintingRobotWithConfig(program, config) {
   panel0.color = config.initialColor;
   const t0 = Date.now();
 
-  if (DIRECT_RENDER_MODE) {
-    const cursor = preparePlotArea(process.stdout, config.render.width, config.render.height);  
+  let roomToRender = isRoomToRender(process.stdout, config.render);
+  if (DIRECT_RENDER_MODE && roomToRender) {
+    const cursor = preparePlotArea(process.stdout, config.render.width, config.render.height, YAXIS.BOTTOM_TO_TOP);  
     const panelsAsync = paintingRobotEventGenerator(panels, program);
-    const slowPanelsAsync = delay(0, panelsAsync);
-    await plotPanels(config.render.offsetX, config.render.offsetY, panelsAsync, cursor);
+    await plotPanels(cursor, panelsAsync, config.render.offset);
   
     cursor.close(Date.now() - t0, 'ms');
   
@@ -70,13 +60,16 @@ async function runPaintingRobotWithConfig(program, config) {
       if (typeof onPaint === "function")
         onPaint.apply(panels, args);
     }
-    renderAllPanels(process.stdout, panels);
-    
+
+    roomToRender = await waitForRoomToRender(process.stdout, config.render);
+    if (roomToRender) {
+      renderAllPanels(process.stdout, panels, YAXIS.BOTTOM_TO_TOP);
+    }
+
     console.log(Date.now() - t0, 'ms');
   }
 
   let paintedPanels = [...panels.values()].filter(panel => panel.coats > 0);
-
   console.log('Panels Painted', paintedPanels.length, (paintedPanels.length === config.paintedPanels) ? '🏆' : '❌');
 }
 
@@ -114,5 +107,6 @@ async function getConfig() {
     });
   });
 }
+
 module.exports = {
 };

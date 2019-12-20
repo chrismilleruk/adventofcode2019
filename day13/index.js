@@ -1,6 +1,6 @@
 const { loadIntcodeFile } = require('../lib/loadIntcode');
 const { playArcadeGame } = require('./arcadeGame');
-const { calculatePlotExtents, preparePlotArea, plotPanels } = require('../lib/render');
+const { preparePlotArea, YAXIS } = require('../lib/render');
 const readline = require('readline');
 const chalk = require('chalk');
 
@@ -18,7 +18,7 @@ if (require.main === module) {
       const program = await loadIntcodeFile(filename);
       const tiles = new Map();
       let score = 0;
-      const cursor = preparePlotArea(process.stdout, 45, 25, 1);
+      const cursor = preparePlotArea(process.stdout, 45, 25, YAXIS.TOP_TO_BOTTOM);
       setupInputListener(() => {
         cursor.moveTo(0, 27);
         console.log('[Q]uitting game.')
@@ -27,11 +27,11 @@ if (require.main === module) {
       cursor.write('Score:');
 
       const inputFn = () => {
-        if (!!CHEATMODE_ON) {
+        if (CHEATMODE_ON) {
           return getBallDirFn();
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           cursor.moveTo(22, -1);
           cursor.write('in');
           listen(cursor, resolve);
@@ -53,6 +53,7 @@ if (require.main === module) {
       }
 
       for await (const event of playArcadeGame(program, inputFn)) {
+        let key = String([event.x, event.y]);
         switch (event.event) {
           case 'score':
             //print score
@@ -63,7 +64,6 @@ if (require.main === module) {
             cursor.write(String(event.score));
             break;
           case 'tile':
-            let key = String([event.x, event.y]);
             tiles.set(key, event.tileId);
             cursor.moveTo(event.x, event.y);
             cursor.write(getTile(event.tileId));
