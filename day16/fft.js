@@ -4,11 +4,15 @@ class FFT {
   constructor(seed) {
     this._seed = seed;
     this.value = seed;
-    this.matrix = createMatrix(String(seed).length);
   }
 
   get first8digits() {
-    return this.value.slice(0,8);
+    return this.value.slice(0, 8);
+  }
+
+  get digitsAtOffset() {
+    const offset = parseInt(this.value.slice(0, 7));
+    return this.value.slice(offset, offset + 8);
   }
 
   step(phases = 1) {
@@ -20,7 +24,7 @@ class FFT {
 
   applyMatrix(value) {
     // Input signal: 12345678
-    
+
     // 1*1  + 2*0  + 3*-1 + 4*0  + 5*1  + 6*0  + 7*-1 + 8*0  = 4
     // 1*0  + 2*1  + 3*1  + 4*0  + 5*0  + 6*-1 + 7*-1 + 8*0  = 8
     // 1*0  + 2*0  + 3*1  + 4*1  + 5*1  + 6*0  + 7*0  + 8*0  = 2
@@ -29,7 +33,7 @@ class FFT {
     // 1*0  + 2*0  + 3*0  + 4*0  + 5*0  + 6*1  + 7*1  + 8*1  = 1
     // 1*0  + 2*0  + 3*0  + 4*0  + 5*0  + 6*0  + 7*1  + 8*1  = 5
     // 1*0  + 2*0  + 3*0  + 4*0  + 5*0  + 6*0  + 7*0  + 8*1  = 8
-    
+
     // After 1 phase:  48226158
     // After 2 phases: 34040438
     // After 3 phases: 03415518
@@ -37,58 +41,61 @@ class FFT {
 
     // Get Digits as an array.
     const digits = String(value).split('').map(s => parseInt(s, 10));
-    while (digits.length < this.matrix.length) {
+    while (digits.length < this._seed.length) {
       digits.unshift(0);
     }
     // digits = [ 1, 2, 3, 4, 5, 6, 7, 8 ]
 
-    const output = this.matrix.map((row) => {
-      let val = row.reduce((total, multiplier, index) => {
-        return total + (digits[index] * multiplier)
-      }, 0)
+    const length = digits.length;
+    const output = Array(length);
+    for (let row = 0; row < length; row = row + 1) {
+      // row;/*?*/
+      let total = 0;
+      for (let col = 0; col < length; col = col + 1) {
+        // [row, col];/*?*/
+        const multiplier = getMultiplier(row, col);
+        total += (digits[col] * multiplier)
+      }
 
       // Then, only the ones digit is kept: 38 becomes 8, -17 becomes 7, and so on.
-      return Math.abs(val) % 10;
-    })
+      const digit = Math.abs(total) % 10;
+      if (length > 1000) process.stdout.write(String(digit));
+      output[row] = digit;
+    }
 
     const result = output.join('');
-    return result;/*?*/
+    return result;
   }
 }
 
-function createMatrix(size) {
-  let matrix = Array(size).fill(Array(size+1).fill(0));
-
+function getMultiplier(row, col) {
   // The base pattern is 0, 1, 0, -1.
   const basePattern = [0, 1, 0, -1];
 
-  matrix = matrix.map((array, row) => {
-    // Then, repeat each value in the pattern a number of times equal to the 
-    // position in the output list being considered. Repeat once for the first
-    // element, twice for the second element, three times for the third element, 
-    // and so on. So, if the third element of the output list is being calculated, 
-    // repeating the values would produce: 0, 0, 0, 1, 1, 1, 0, 0, 0, -1, -1, -1.
-    const numRepeats = row + 1;
-    const seqLength = 4 * numRepeats;
-    array = array.map((_, col) => {
-      const seqPos = (col % seqLength);
-      const baseIndex = Math.floor(seqPos / numRepeats);
+  // When applying the pattern, skip the very first value exactly once. 
+  // (In other words, offset the whole pattern left by one.) So, for the 
+  // second element of the output list, the actual pattern used would be: 
+  // 0, 1, 1, 0, 0, -1, -1, 0, 0, 1, 1, 0, 0, -1, -1, ....
+  const col1 = col + 1;
+  const row1 = row + 1;
+  
+  // Then, repeat each value in the pattern a number of times equal to the 
+  // position in the output list being considered. Repeat once for the first
+  // element, twice for the second element, three times for the third element, 
+  // and so on. So, if the third element of the output list is being calculated, 
+  // repeating the values would produce: 0, 0, 0, 1, 1, 1, 0, 0, 0, -1, -1, -1.
 
-      // [row, col, seqLength, seqPos, baseIndex, basePattern[baseIndex]];/*?*/
+  // const numRepeats = row1;
+  // const seqLength = basePattern.length * numRepeats;
 
-      return basePattern[baseIndex];
-    })
+  // const seqPos = (col1 % seqLength);
+  // const baseIndex = Math.floor(seqPos / numRepeats);
+  
+  const patternIndex = (Math.floor(col1 / row1) % (4 * row1)) % 4;
 
-    // When applying the pattern, skip the very first value exactly once. 
-    // (In other words, offset the whole pattern left by one.) So, for the 
-    // second element of the output list, the actual pattern used would be: 
-    // 0, 1, 1, 0, 0, -1, -1, 0, 0, 1, 1, 0, 0, -1, -1, ....
-    array.shift();
+  // [row, col, seqLength, seqPos, baseIndex, patternIndex, basePattern[baseIndex]];/*?*/
 
-    return array;
-  });
-
-  return matrix;
+  return basePattern[patternIndex];
 }
 
 module.exports = { FFT };

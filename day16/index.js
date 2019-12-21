@@ -23,11 +23,31 @@ if (require.main === module) {
       for (phase = 1; phase <= numberOfPhases; phase += 1){
         let t1 = Date.now();
         fft.step();
-        console.log(phase, fft.first8digits, Date.now() - t1, 'ms')
+        if (phase < 10 || phase % 10 === 0) console.log(phase, fft.first8digits, Date.now() - t1, 'ms')
       }
       
       console.log('First eight digits after 100 phases', fft.first8digits, (fft.first8digits === '19944447') ? '🏆' : '❌');
       console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
+
+      // Part 2
+      t0 = Date.now();
+      const input2 = Array(10000).fill(line.value).join('');
+      console.log(chalk.green(`input repeated 10,000 times is ${input2.length} digits long.`))
+      console.log(chalk.gray(input2))
+
+      const fft2 = new FFT(input2);
+      console.log(chalk.green(`FFT initialised.`))
+      console.log(chalk.green(fft2.digitsAtOffset))
+      for (phase = 1; phase <= numberOfPhases; phase += 1){
+        let t1 = Date.now();
+        fft2.step();
+        if (phase < 10 || phase % 10 === 0) console.log(phase, fft2.digitsAtOffset, Date.now() - t1, 'ms')
+      }
+
+      console.log('First eight digits after 100 phases', fft.first8digits, (fft.first8digits === '19944447') ? '🏆' : '❌');
+      console.log('Checksum digits after 100 phases', fft.digitsAtOffset, (fft.digitsAtOffset === '19944447') ? '🏆' : '❌');
+      console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
+
     } catch (ex) {
       console.error(ex);
     }
