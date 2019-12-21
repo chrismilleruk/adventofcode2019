@@ -136,101 +136,6 @@ describe('Repair Droid', () => {
     })
   })
   describe('Seek', () => {
-    function seekUsingList(contentList) {
-      const droid = new RepairDroid();
-
-      let moves = [];
-      for (const direction of droid) {
-        const content = contentList.shift();
-
-        if (typeof content === 'undefined') break;
-
-        const move = [direction, content];
-        moves.push(move);
-        droid.move(move[0], move[1]);
-
-        if (content === Content.OxygenSystem) break;
-      }
-
-      return { droid, moves };
-    }
-
-    function seekUsingGrid(gridLines) {
-      if (gridLines.indexOf('x') === -1) {
-        throw `No 'x' found to signify start pos.`
-      }
-      if (gridLines.indexOf('*') === -1) {
-        throw `No '*' found to signify oxygen.`
-      }
-      const grid = gridLines.split('\n').map(line => line.trim());
-      let pos = { x: 0, y: 0 };
-      
-      grid.find((line, y) => {
-        const x = line.indexOf('x');
-        if (x > -1) {
-          pos = {x, y};
-          return true;
-        }
-      })
-
-      const droid = new RepairDroid();
-
-      let moves = [];
-      for (const direction of droid) {
-        let newPos = getPos(direction);
-        let content = checkPos(newPos.x, newPos.y);
-
-        const move = [direction, content];
-        moves.push(move);
-        droid.move(move[0], move[1]);
-        
-        if (content !== Content.Wall) {
-          pos = newPos;
-        }
-
-        if (content === Content.OxygenSystem) break;
-      }
-
-      return { droid, moves };
-
-      function getPos(direction) {
-        let newPos = {...pos};
-        switch (direction) {
-          case Direction.North:
-            newPos.y -= 1;
-            break;
-          case Direction.South:
-            newPos.y += 1;
-            break;
-          case Direction.West:
-            newPos.x -= 1;
-            break;
-          case Direction.East:
-            newPos.x += 1;
-            break;
-        }
-        return newPos;
-      }
-
-      function checkPos(x, y) {
-        let char = grid[y][x];
-        switch (char) {
-          case ' ':
-            return Content.Unknown;
-          case '.':
-            return Content.Empty;
-          case 'x':
-            return Content.Empty;
-          case '#':
-            return Content.Wall;
-          case '*':
-            return Content.OxygenSystem;
-          default:
-            return Content.Unknown;
-        }
-      }
-    }
-
     test('Seek stops when finding Oxygen System', () => {
       const { moves } = seekUsingList([
         Content.Empty, 
@@ -310,6 +215,89 @@ describe('Repair Droid', () => {
     })
   })
 
+  describe('Oxygen Distance', () => {
+    const grid1 = `
+    ###   
+    #..## 
+    #.#..#
+    #.Ox# 
+    ####  `;
+    test('Shortest Distance from Start', () => {
+      const { droid } = seekUsingGrid(grid1, false)
+
+      // expect(droid.pos).toEqual([-1, 0])
+      expect(droid.oxygenSystem.coord).toEqual([-1, 0])
+      expect(droid.oxygenSystem.distance.fromStart).toBe(1);
+      expect(droid.oxygenSystem.distance.fromOxygenSystem).toBe(0);
+    })
+    test('Furthest Distance From Oxygen', () => {
+      const { droid } = seekUsingGrid(grid1, false)
+      
+      expect(droid.oxygenSystem.coord).toEqual([-1, 0])
+      expect(droid.oxygenSystem.distance.fromOxygenSystem).toBe(0);
+      expect(droid.countEmptySpace).toBe(7)
+      expect(droid.furthestFromOxygen.distance.fromOxygenSystem).toBe(4);
+    })
+    test('Furthest Distance From Oxygen (map 2)', () => {
+      const { droid } = seekUsingGrid(`
+      ######
+      #....# 
+      #.##.#
+      #.Ox## 
+      ######  `, false)
+
+      expect(droid.countEmptySpace).toBe(8);
+      expect(droid.furthestFromOxygen.distance.fromOxygenSystem).toBe(7);
+      expect(droid.furthestFromOxygen.coord).toEqual([1, -1])
+    })
+    test('Furthest Distance From Oxygen following LH wall (map 3)', () => {
+      const { droid } = seekUsingGrid(`
+      ###########
+      #.........# 
+      #.##.#.##.#
+      #.Ox##..#.#
+      ###########  `, false)
+
+      expect(droid.countEmptySpace).toBe(18);
+      expect(droid.furthestFromOxygen.distance.fromOxygenSystem).toBe(13);
+      expect(droid.furthestFromOxygen.coord).toEqual([6, 0])
+    })
+    test('Furthest Distance From Oxygen following RH wall (map 4)', () => {
+      const { droid } = seekUsingGrid(`
+      ###########
+      #.........# 
+      #.##.#.####
+      #.Ox##....#
+      ###########  `, false)
+
+      expect(droid.countEmptySpace).toBe(18);
+      expect(droid.furthestFromOxygen.distance.fromOxygenSystem).toBe(13);
+      expect(droid.furthestFromOxygen.coord).toEqual([6, 0])
+    })
+    test('Furthest Distance From Oxygen with a loop (map 5)', () => {
+      const { droid } = seekUsingGrid(`
+      ###########
+      #.........# 
+      #.##.#.##.#
+      #.Ox##....#
+      ###########  `, false)
+
+      expect(droid.countEmptySpace).toBe(18);
+      expect(droid.furthestFromOxygen.distance.fromOxygenSystem).toBe(13);
+      expect(droid.furthestFromOxygen.coord).toEqual([6, 0])
+
+      // ###########
+      // #....789..# 
+      // #.##.#9##.#
+      // #.Ox##....#
+      // ###########  
+      expect(droid.map.get('2,-2').distance.fromOxygenSystem).toEqual(7);
+      expect(droid.map.get('3,-2').distance.fromOxygenSystem).toEqual(8);
+      expect(droid.map.get('3,-1').distance.fromOxygenSystem).toEqual(9);
+      expect(droid.map.get('4,-2').distance.fromOxygenSystem).toEqual(9);
+    })
+  })
+
   describe('Run intcode', () => {
     test.skip('program', async () => {
       const program = await loadIntcodeFile(filename);
@@ -323,3 +311,103 @@ describe('Repair Droid', () => {
     })
   })
 })
+
+
+function seekUsingList(contentList) {
+  const droid = new RepairDroid();
+
+  let moves = [];
+  for (const direction of droid) {
+    const content = contentList.shift();
+
+    if (typeof content === 'undefined') break;
+
+    const move = [direction, content];
+    moves.push(move);
+    droid.move(move[0], move[1]);
+
+    if (content === Content.OxygenSystem) break;
+  }
+
+  return { droid, moves };
+}
+
+function seekUsingGrid(gridLines, stopAtOxygen = true, maxMoves = 100) {
+  if (gridLines.indexOf('x') === -1) {
+    throw `No 'x' found to signify start pos.`
+  }
+  if (gridLines.indexOf('*') === -1 && gridLines.indexOf('O') === -1 ) {
+    throw `No '*' or 'O' found to signify oxygen.`
+  }
+  const grid = gridLines.split('\n').map(line => line.trim());
+  let pos = { x: 0, y: 0 };
+  
+  grid.find((line, y) => {
+    const x = line.indexOf('x');
+    if (x > -1) {
+      pos = {x, y};
+      return true;
+    }
+  })
+
+  const droid = new RepairDroid();
+
+  let moves = [];
+  for (const direction of droid) {
+    maxMoves = maxMoves - 1;
+    if (maxMoves <= 0) break;
+
+    let newPos = getPos(direction);
+    let content = checkPos(newPos.x, newPos.y);
+
+    const move = [direction, content];
+    moves.push(move);
+    droid.move(move[0], move[1]);
+    
+    if (content !== Content.Wall) {
+      pos = newPos;
+    }
+
+    if (stopAtOxygen && content === Content.OxygenSystem) break;
+  }
+
+  return { droid, moves };
+
+  function getPos(direction) {
+    let newPos = {...pos};
+    switch (direction) {
+      case Direction.North:
+        newPos.y -= 1;
+        break;
+      case Direction.South:
+        newPos.y += 1;
+        break;
+      case Direction.West:
+        newPos.x -= 1;
+        break;
+      case Direction.East:
+        newPos.x += 1;
+        break;
+    }
+    return newPos;
+  }
+
+  function checkPos(x, y) {
+    let char = grid[y][x];
+    switch (char) {
+      case ' ':
+        return Content.Unknown;
+      case '.':
+        return Content.Empty;
+      case 'x':
+        return Content.Empty;
+      case '#':
+        return Content.Wall;
+      case '*':
+      case 'O':
+        return Content.OxygenSystem;
+      default:
+        return Content.Unknown;
+    }
+  }
+}

@@ -25,7 +25,7 @@ if (require.main === module) {
       // Draw Start as Red.
       plotPanelAsBlock(cursor, startLocation, new Map(), { x: 0, y: 0 }, { color: chalk.redBright, value: Content.Empty });
 
-      for await (const evt of runRepairDroid(program, droid, 3000)) {
+      for await (const evt of runRepairDroid(program, droid, 5000)) {
         // Draw Walls as Blue.
         plotPanelAsBlock(cursor, evt.location, blocks, { x: 0, y: 0 }, { color: chalk.gray, value: Content.Wall });
       }
@@ -40,7 +40,13 @@ if (require.main === module) {
       cursor.close('Finished?', droid.done);
 
       console.log(chalk.yellow('Oxygen System: '), droid.oxygenSystem);
-      console.log('Shortest distance to oxygen', droid.oxygenSystem.distance, (droid.oxygenSystem.distance === 294) ? '🏆' : '❌');
+      const oxySysdistance = droid.oxygenSystem.distance;
+      console.log('Shortest distance from start to oxygen', oxySysdistance.fromStart, (oxySysdistance.fromStart === 294) ? '🏆' : '❌');
+      console.log('');
+
+      const furthestDistance = droid.furthestFromOxygen.distance;
+      console.log(chalk.yellow('Furthest Point: '), droid.furthestFromOxygen);
+      console.log('Furthest distance from oxygen to edge', furthestDistance.fromOxygenSystem, (furthestDistance.fromOxygenSystem === 388) ? '🏆' : '❌');
     } catch (ex) {
       console.error(ex);
     }

@@ -7,7 +7,7 @@ async function* runRepairDroid(program, droid, maxMoves = -1) {
   // Wait for the repair droid to finish the movement operation.
   // Report on the status of the repair droid via an output instruction.
   // Only four movement commands are understood: north (1), south (2), west (3), and east (4). Any other command is invalid. The movements differ in direction, but not in distance: in a long enough east-west hallway, a series of commands like 4,4,4,4,3,3,3,3 would leave the repair droid back where it started.
-  
+
   let lastMove = 0;
   const inputFn = () => {
     lastMove = droid.next();
@@ -29,7 +29,7 @@ class Location {
   constructor(x, y, content = Content.Unknown) {
     this.coord = [x, y];
     this.content = content;
-    this.distance;
+    this.distance = { fromStart: -1, fromOxygenSystem: -1 };
   }
 
   get key() {
@@ -61,14 +61,14 @@ const Content = {
 
 class RepairDroid {
   // Only four movement commands are understood: north (1), south (2), west (3), and east (4). Any other command is invalid. The movements differ in direction, but not in distance: in a long enough east-west hallway, a series of commands like 4,4,4,4,3,3,3,3 would leave the repair droid back where it started.
-  
+
   // You don't know anything about the area around the repair droid, but you can figure it out by watching the status codes.
-  
+
   constructor() {
     this.map = new Map();
     this.directions = [Direction.North, Direction.East, Direction.South, Direction.West];
     this.location = new Location(0, 0, Content.Empty);
-    this.location.distance = 0;
+    this.location.distance.fromStart = 0;
     this.map.set(this.location.key, this.location);
   }
 
@@ -90,7 +90,7 @@ class RepairDroid {
       this.rotateLeft();
     }
   }
-  
+
   rotateRight() {
     this.directions.push(this.directions.shift());
   }
@@ -100,6 +100,7 @@ class RepairDroid {
   }
 
   next() {
+    // TODO: Stop infinite loop from within Droid.
     // if (this._oxygenSystem) {
     //   return { done: true };
     // }
@@ -111,15 +112,9 @@ class RepairDroid {
     }
 
     return { value: this.direction, done: false };
-
-    // direction = this.directions.find((dir) => this.peek(dir) === Content.Empty);
-    // if (typeof direction !== 'undefined') {
-    //   this.direction = direction;
-    //   return { value: direction, done: false };
-    // }
   }
 
-  get done() {
+  get foundOxygenSystem() {
     return !!this._oxygenSystem;
   }
 
@@ -127,18 +122,48 @@ class RepairDroid {
     return this._oxygenSystem;
   }
 
+  get furthestFromOxygen() {
+    let furthest;
+    for (const current of this.emptySpaces()) {
+      if (typeof furthest === "undefined") {
+        furthest = current;
+      }
+      if (furthest.distance.fromOxygenSystem < current.distance.fromOxygenSystem) {
+        furthest = current;
+      }
+    }
+    
+    return furthest;
+  }
+
+  *emptySpaces() {
+    for (const location of this.map.values()) {
+      if (location.content === Content.Empty) {
+        yield location;
+      }
+    }
+  }
+
+  get countEmptySpace() {
+    let countSpaces = 0;
+    for (const _ of this.emptySpaces()) {
+      countSpaces += 1;
+    }
+    return countSpaces;
+  }
+
   move(direction, content) {
     // The repair droid can reply with any of the following status codes:
-  
+
     // 0: The repair droid hit a wall. Its position has not changed.
     // 1: The repair droid has moved one step in the requested direction.
     // 2: The repair droid has moved one step in the requested direction; its new position is the location of the oxygen system.  
     const location = this.getLocation(direction);
-    
+
     // If we've never been here before, set the content and shortest distance.
     if (location.content === Content.Unknown) {
       location.content = content;
-      location.distance = this.location.distance + 1;
+      location.distance.fromStart = this.location.distance.fromStart + 1;
     }
 
     switch (location.content) {
@@ -146,16 +171,37 @@ class RepairDroid {
         this.rotateRight();
         break;
       case Content.Empty:
+        // If we found the oxygen system, track the distance from it.
+        this.checkOxygen(location);
+
         this.location = location;
         this.rotateLeft();
         break;
       case Content.OxygenSystem:
         this.location = location;
         this._oxygenSystem = location;
+        location.distance.fromOxygenSystem = 0;
         break;
     }
 
     return { pos: this.pos, dir: this.direction, location };
+  }
+
+  checkOxygen(location) {
+    if (this.foundOxygenSystem) {
+      const nextTileDistance = location.distance;
+      const currentDistance = this.location.distance;
+      // If we have never measured to the new tile.
+      if (nextTileDistance.fromOxygenSystem < 0) {
+        // Then new tile distance is one further than the current tile distance.
+        nextTileDistance.fromOxygenSystem = currentDistance.fromOxygenSystem + 1;
+      }
+      // OR have measured to new tile, but it's further than our current route
+      if (nextTileDistance.fromOxygenSystem > currentDistance.fromOxygenSystem + 1) {
+        // Then new tile distance is one further than the current tile distance.
+        nextTileDistance.fromOxygenSystem = currentDistance.fromOxygenSystem + 1;
+      }
+    }
   }
 
   peek(direction) {
