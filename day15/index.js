@@ -37,7 +37,7 @@ if (require.main === module) {
       const overlay = new Map();
       plotPanelAsBlock(cursor, droid.oxygenSystem, overlay, { x: 0, y: 0 }, { color: chalk.blueBright, value: Content.OxygenSystem });
 
-      cursor.close('Finished?', droid.done);
+      cursor.close('Finished?', droid.foundOxygenSystem);
 
       console.log(chalk.yellow('Oxygen System: '), droid.oxygenSystem);
       const oxySysdistance = droid.oxygenSystem.distance;
