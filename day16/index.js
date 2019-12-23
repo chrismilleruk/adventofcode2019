@@ -33,11 +33,10 @@ if (require.main === module) {
       t0 = Date.now();
       const input2 = Array(10000).fill(line.value).join('');
       console.log(chalk.green(`input repeated 10,000 times is ${input2.length} digits long.`))
-      console.log(chalk.gray(input2))
 
-      const fft2 = new FFT(input2);
+      const fft2 = new FFT(input2, input2.slice(0, 7));
       console.log(chalk.green(`FFT initialised.`))
-      console.log(chalk.green(fft2.digitsAtOffset))
+      console.log(chalk.gray(fft2.first7digits), chalk.gray(fft2.offset), chalk.gray(fft2.digitsAtOffset))
       for (phase = 1; phase <= numberOfPhases; phase += 1){
         let t1 = Date.now();
         fft2.step();
