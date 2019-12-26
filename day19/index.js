@@ -46,10 +46,8 @@ async function part1() {
 }
 
 async function part2() {
-
   console.log(chalk.yellowBright(`Find the 100x100 square closest to the emitter that fits entirely within the tractor beam`));
   let t0 = Date.now();
-
 
   const droneSystem = new DroneSystem(filename);
   await droneSystem.loadTractorBeamTestProgram();

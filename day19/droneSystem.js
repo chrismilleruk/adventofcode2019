@@ -29,46 +29,52 @@ class DroneSystem {
     return outputs[0];
   }
 
-  async* testGrid(width, height) {
-    for (let y = 0; y < height; y += 1) {
-      for (let x = 0; x < width; x += 1) {
-        let output = await this.testAt(x, y);
-        yield new Panel(x, y, output);
-      }
-    }
-  }
-
-  async findSpaceFor(width, height, rowLimit = 1000) {
+  async* findEdges(height) {
+    let leftEdges = [];
     let rightEdges = [];
-    for (let y = 0; y < rowLimit; y += 1) {
+    for (let y = 0; y < height; y += 1) {
+      const leftEdgeMin = leftEdges[y - 1] || 0;
       const rightEdgeMin = rightEdges[y - 1] || 0;
       const rightEdgeMax = rightEdgeMin + 10;
       
       let foundBeam = false;
-      for (let x = rightEdgeMin; x < rightEdgeMax; x += 1) {
+      for (let x = leftEdgeMin; x < rightEdgeMax; x += 1) {
         let output = await this.testAt(x, y);
+        if (!foundBeam && output === 1) {
+          leftEdges[y] = x;
+          foundBeam = true;
+          x = Math.max(x, rightEdgeMin);
+        }
         if (foundBeam && output === 0) {
           rightEdges[y] = x - 1;
           // [rightEdges[y], y];/*?*/
           break;
         }
-        if (output === 1) {
-          foundBeam = true;
-        }
       }
 
-      const topRightX = rightEdges[y];
-      const topRightY = y;
+      yield { y, left: leftEdges[y], right: rightEdges[y] };
+    }
+  }
+
+  async* testGrid(width, height) {
+    for await (const edge of this.findEdges(height)) {
+      let right = Math.min(edge.right, width - 1);
+      for (let x = edge.left; x <= right; x += 1) {
+        yield new Panel(x, edge.y, 1);
+      }
+    }
+  }
+
+  async findSpaceFor(width, height, rowLimit = 1000) {
+    for await (const edge of this.findEdges(rowLimit)) {
+      const topRightX = edge.right;
+      const topRightY = edge.y;
       const bottomLeftX = topRightX - width + 1;
       const bottomLeftY = topRightY + height - 1;
-
-      // [bottomLeftX, topRightY, topRightX, bottomLeftY];/*?*/
 
       if (bottomLeftX > 0) {
         const bottomLeftTest = await this.testAt(bottomLeftX, bottomLeftY);
         if (bottomLeftTest === 1) {
-          // [topRightX, topRightY, bottomLeftX, bottomLeftY];/*?*/
-
           return [bottomLeftX, topRightY];
         }
       }
