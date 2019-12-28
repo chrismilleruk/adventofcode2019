@@ -12,7 +12,7 @@ class LockedMazeRunner extends MazeRunner {
     tiles = tiles.map((tile) => tile.clone());
     this._unlockedMaze = new MazeRunner(tiles, validChars + keyChars + lockChars);
     this._unlockedMaze.linkTiles();
-    
+
     this._keys = new Map();
     for (const char of keyChars) {
       const tile = this._aliases.get(char);
@@ -22,20 +22,38 @@ class LockedMazeRunner extends MazeRunner {
     }
     
     this._locks = new Map();
-    this._lockChars = '';
     for (const char of lockChars) {
       const tile = this._aliases.get(char);
       if (tile) {
         this._locks.set(char, tile);
-        this._lockChars += char;
         this._tiles.delete(tile.key);
         this._aliases.delete(tile.id);
       }
     }
+
+    this._lockKeyMap = new Map();
+    this._keyLockMap = new Map();
+    [...lockChars].forEach((lockChar, idx) => {
+      let keyChar = keyChars[idx];
+      this._lockKeyMap.set(lockChar, keyChar);
+      this._keyLockMap.set(keyChar, lockChar);
+    });
   }
 
   get lockChars() {
-    return this._lockChars;
+    return [...this._locks.keys()];
+  }
+
+  getLocksOnRoute(route) {
+    let array = route.map(char => this.lockChars.indexOf(char))
+      .filter(idx => idx > -1)
+      .map(idx => this.lockChars[idx])
+      .map(lockId => [this._lockKeyMap.get(lockId), lockId]);
+    return new Map(array);
+  }
+
+  getKeysOnRoute(route) {
+    return route.filter(char => this._keys.has(char));
   }
 
   shortestUnlockedRoutes(fromKey, toKey, maxSteps) {
@@ -48,8 +66,23 @@ class LockedMazeRunner extends MazeRunner {
     if (!lockedTile) return false;
     this.addTile(lockedTile);
     this._locks.delete(lockId);
+    return true;
   }
 
+  useKey(keyId) {
+    const lockId = this._keyLockMap.get(keyId);
+    const lockedTile = this._locks.get(lockId);
+    if (lockedTile && !this.unlockTile(lockId)) {
+      throw `Unable to unlock lock (${lockId}) with key (${keyId})`;
+    }
+    this._keys.delete(keyId);
+  }
+
+  useKeysOnRoute(route) {
+    for(const key of this.getKeysOnRoute(route)) {
+      this.useKey(key);
+    }
+  }
 }
 
 module.exports = { LockedMazeRunner };

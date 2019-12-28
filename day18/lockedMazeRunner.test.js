@@ -108,6 +108,36 @@ describe('Maze With Keys', () => {
       shortestDistance = maze.shortestDistance('@', 'b');
       expect(shortestDistance).toEqual(4);
     })
+
+    test('Find & use keys', async () => {
+      const linesAsync = createStreamFromString(example1)
+      const maze = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
+      maze.linkTiles();
+
+      let segments = [];
+
+      let shortestUnlockedRoutes = maze.shortestUnlockedRoutes('@', 'b');
+      let doorsToUnlock = maze.getLocksOnRoute(shortestUnlockedRoutes[0]);
+
+      let routes;
+
+      let key = [...doorsToUnlock.keys()][0];
+      routes = maze.shortestRoutes('@', key);
+      segments.push(routes[0]);
+      maze.useKeysOnRoute(routes[0])
+
+      routes = maze.shortestRoutes(key, 'b');
+      segments.push(routes[0]);
+      maze.useKeysOnRoute(routes[0])
+
+      expect(segments).toEqual([
+        ['@', '6,1', 'a'],
+        ['a', '6,1', '@', '4,1', 'A', '2,1', 'b']
+      ]);
+      
+      let totalDistance = segments.map(s => s.length - 1).reduce((p,c) => p+c)
+      expect(totalDistance).toBe(8);
+    })
   })
 
 })
