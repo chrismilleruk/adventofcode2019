@@ -319,8 +319,6 @@ FG..#########.....#
       // Tile { x: 25, y: 28, char: '.', links: [Object], _id: 'JP1' },
       // Tile { x: 19, y: 34, char: '.', links: [Object], _id: 'JP2' } ] }
 
-      maze.maxSteps = 10000;
-
       expect(maze.shortestDistance('AS1', 'AS2')).toBe(1);
       expect(maze.shortestDistance('QG1', 'QG2')).toBe(1);
       expect(maze.shortestDistance('BU1', 'BU2')).toBe(1);
@@ -353,20 +351,18 @@ FG..#########.....#
 
   describe('Day 20, Puzzle Input', () => {
 
-    test.skip('AA to ZZ takes 452 steps.', async () => {
+    test('AA to ZZ takes 442 steps.', async () => {
       const linesAsync = createStreamFromFile(filename, false)
       const maze = await TeleportMazeRunner.parse(linesAsync, mazeValidChars, mazeLabelChars);
 
       maze.linkTiles();
-
-      maze.maxSteps = 1000000000;/*?*/
 
       // In your maze, how many steps does it take to get from the open tile 
       // marked AA to the open tile marked ZZ?
       let shortestDistance = maze.shortestDistance('AA', 'ZZ');
 
       // That's not the right answer; your answer is too high. (You guessed 452.)
-      expect(shortestDistance).toBeLowerThan(452);
+      expect(shortestDistance).toBe(442);
     })
   })
 })
