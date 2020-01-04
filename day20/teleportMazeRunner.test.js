@@ -89,7 +89,7 @@ FG..#########.....#
       maze.addLink('FG1', 'FG2', 'FG');
 
       // Clear the maze cache because the maze shape has changed.
-      maze.clearCache()
+      maze.cacheClear()
 
       // However, there is a shorter path: 
       shortestRoutes = maze.shortestRoutes('AA', 'ZZ');
