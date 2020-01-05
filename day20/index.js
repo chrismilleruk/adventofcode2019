@@ -23,11 +23,15 @@ async function part1() {
   console.log(chalk.yellowBright(`How many steps does it take to get from the open tile marked AA to the open tile marked ZZ?`));
   let t0 = Date.now();
 
-  let gridSize = [110, 106]
+  let gridSize = [110, 106];
 
-  const cursor = preparePlotArea(process.stdout, gridSize[0] / 2, gridSize[1] / 2);
-  cursor.setOffset({ x: 0, y: -1 });
-  cursor.moveTo(0, 0);
+  
+  let cursor;
+  if (process.stdout.rows > gridSize[1]/2) {
+    cursor = preparePlotArea(process.stdout, gridSize[0] / 2, gridSize[1] / 2);
+    cursor.setOffset({ x: 0, y: -1 });
+    cursor.moveTo(0, 0);
+  }
   
   const mazeLabelChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const mazeValidChars = '.@';
@@ -37,42 +41,51 @@ async function part1() {
   maze.linkTiles();
 
   let panelMap = new Map();
-  for await (const tile of maze.tiles)
-  {
-    let panel = new Panel(tile.x, tile.y, 1)
-    plotPanelAsBlock(cursor, panel, panelMap);
-  }
-  panelMap.clear();
-  let metadata = maze.getDistanceMeta('AA');
-  for await (const meta of metadata.values())
-  {
-    let panel = new Panel(meta.tile.x, meta.tile.y, 1)
-    plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0}, { color: chalk.blue, value: 1 });
-  }
-  // panelMap.clear();
-  for await (const tile of maze._aliases.values())
-  {
-    let panel = new Panel(tile.x, tile.y, 1)
-    plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0}, { color: chalk.red, value: 1 });
+  if (cursor) {
+    for await (const tile of maze.tiles)
+    {
+      let panel = new Panel(tile.x, tile.y, 1)
+      plotPanelAsBlock(cursor, panel, panelMap);
+    }
+    panelMap.clear();
+    let metadata = maze.getDistanceMeta('AA');
+    for await (const meta of metadata.values())
+    {
+      if (!meta.tile) {
+        // throw `no tile ${meta}`
+        continue;
+      }
+
+      let panel = new Panel(meta.tile.x, meta.tile.y, 1)
+      plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0}, { color: chalk.blue, value: 1 });
+    }
+    // panelMap.clear();
+    for await (const tile of maze._aliases.values())
+    {
+      let panel = new Panel(tile.x, tile.y, 1)
+      plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0}, { color: chalk.red, value: 1 });
+    }
   }
 
   let shortestRoutes = maze.shortestRoutes('AA', 'ZZ');
-  for await (const tileKey of shortestRoutes[0])
-  {
-    let tile = maze.get(tileKey);
-    let panel = new Panel(tile.x, tile.y, 1)
-    plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0}, { color: chalk.yellow, value: 1 });
+
+  if (cursor) {
+    for await (const tileKey of shortestRoutes[0])
+    {
+      let tile = maze.get(tileKey);
+      let panel = new Panel(tile.x, tile.y, 1)
+      plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0 }, { color: chalk.yellow, value: 1 });
+    }
   }
 
   let shortestDistance = maze.shortestDistance('AA', 'ZZ');
-  cursor.close('Distance', shortestDistance);
+
+  if (cursor) {
+    cursor.close('Distance', shortestDistance);
+  }
 
   console.log(shortestRoutes[0].filter(key => maze._aliases.has(key)));
-  console.log(shortestRoutes[0].filter(key => maze._aliases.has(key)).map(key => {
-    let tile = maze.get(key);
-    return [key, metadata.get(tile.key).distance];
-  }))
-  // console.log('Points affected', totalAffected, (totalAffected === 203) ? '🏆' : '❌');
+  console.log('Shortest Distance from AA to ZZ', shortestDistance, (shortestDistance === 442) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }
 

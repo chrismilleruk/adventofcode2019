@@ -10,22 +10,38 @@ class TeleportMazeRunner extends MazeRunner {
     const links = new Map();
 
     for (const tile1 of specialTiles.values()) {
-      let searchKey1 = String([tile1.x, tile1.y + 1]);
-      let searchKey2 = String([tile1.x + 1, tile1.y]);
       let tile2;
       let linkName;
+
+      // Find other label pair. These are horizontal or vertical.
+      // e.g.
+      //  oX  OR o
+      //         X
+      let searchKey1 = String([tile1.x, tile1.y + 1]);
+      let searchKey2 = String([tile1.x + 1, tile1.y]);
 
       if (specialTiles.has(searchKey1)) {
         tile2 = specialTiles.get(searchKey1);
         linkName = tile1.char + tile2.char;
 
+        // Look for maze tile that label refers to.
+        // Either above or below.
+        // e.g.    .
+        //         o
+        //         X
+        //         .
         searchKey1 = String([tile1.x, tile1.y - 1])
         searchKey2 = String([tile1.x, tile1.y + 2])
       }
+      
       if (specialTiles.has(searchKey2)) {
         tile2 = specialTiles.get(searchKey2);
         linkName = tile1.char + tile2.char;
 
+        // Look for maze tile that label refers to.
+        // Either left or right.
+        // e.g.    
+        //        .oX. 
         searchKey1 = String([tile1.x - 1, tile1.y])
         searchKey2 = String([tile1.x + 2, tile1.y])
       }
