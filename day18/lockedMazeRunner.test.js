@@ -85,7 +85,6 @@ describe('Maze With Keys', () => {
         [ '@', '6,1', 'a', '6,1', '@', '4,1', 'A', '2,1', 'b' ]
       ]);
 
-      unlockedState;
       shortestRoutes = maze.shortestRoutes('@', 'b', lockedState, unlockedState);
       expect(shortestRoutes).toEqual([
         [ '@', '6,1', 'a', '6,1', '@', '4,1', 'A', '2,1', 'b' ]
@@ -127,6 +126,99 @@ describe('Maze With Keys', () => {
 
       // let shortestRoutes = mazeLocked.shortestRoutes('@', 'f', '', '*');
       // expect(shortestRoutes).toEqual([]);
+    })
+  })
+
+  describe('Day 18, other examples', () => {
+    function filterRoutes(shortestRoutes, filterChars) {
+      return shortestRoutes.map(route => {
+        return route.filter(pos => filterChars.indexOf(pos) > -1)
+        .filter((v,i,self) => self.indexOf(v) === i)
+      })
+    }
+
+    // Here are a few more examples:
+    const example3 = `
+    ########################
+    #...............b.C.D.f#
+    #.######################
+    #.....@.a.B.c.d.A.e.F.g#
+    ########################
+    `;
+    // Shortest path is 132 steps: b, a, c, d, f, e, g
+
+    test('Ex3. Shortest path is 132 steps: b, a, c, d, f, e, g', async () => {
+      const linesAsync = createStreamFromString(example3)
+      const maze = await LockedMazeRunner.parse(linesAsync);
+
+      maze.linkTiles();
+
+      let shortestDistance = maze.shortestDistance('@', 'g', '', '*');
+      expect(shortestDistance).toEqual(132);
+
+      let shortestRoutes = maze.shortestRoutes('@', 'g', '', '*');
+      shortestRoutes = filterRoutes(shortestRoutes, maze.keyChars);
+      expect(shortestRoutes).toEqual([ 
+        ['b', 'a', 'c', 'd', 'f', 'e', 'g']
+      ]);
+    })
+
+    const example4 = `
+    #################
+    #i.G..c...e..H.p#
+    ########.########
+    #j.A..b...f..D.o#
+    ########@########
+    #k.E..a...g..B.n#
+    ########.########
+    #l.F..d...h..C.m#
+    #################
+    `;
+    // Shortest paths are 136 steps;
+    // one is: a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m
+
+    test('Ex4. Shortest paths are 136 steps; one is: a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m', async () => {
+      const linesAsync = createStreamFromString(example4)
+      const maze = await LockedMazeRunner.parse(linesAsync);
+
+      maze.linkTiles();
+
+      let shortestDistance = maze.shortestDistance('@', 'm', '', maze.keyChars);
+      expect(shortestDistance).toEqual(136);
+
+      let shortestRoutes = maze.shortestRoutes('@', 'm', '', maze.keyChars);
+      shortestRoutes = filterRoutes(shortestRoutes, maze.keyChars);
+      expect(shortestRoutes).toHaveLength(400);
+      expect(shortestRoutes).toEqual(
+        expect.arrayContaining([['a', 'f', 'b', 'j', 'g', 'n', 'h', 'd', 'l', 'o', 'e', 'p', 'c', 'i', 'k', 'm']])
+      )
+    })
+
+    const example5 = `
+    ########################
+    #@..............ac.GI.b#
+    ###d#e#f################
+    ###A#B#C################
+    ###g#h#i################
+    ########################
+    `;
+    // Shortest paths are 81 steps; one is: a, c, f, i, d, g, b, e, h
+
+    test('Ex5. Shortest paths are 81 steps; one is: a, c, f, i, d, g, b, e, h', async () => {
+      const linesAsync = createStreamFromString(example5)
+      const maze = await LockedMazeRunner.parse(linesAsync);
+
+      maze.linkTiles();
+
+      let shortestDistance = maze.shortestDistance('@', 'h', '', maze.keyChars);
+      expect(shortestDistance).toEqual(81);
+
+      let shortestRoutes = maze.shortestRoutes('@', 'h', '', maze.keyChars);
+      shortestRoutes = filterRoutes(shortestRoutes, maze.keyChars);
+      expect(shortestRoutes).toEqual([
+        [ 'a', 'c', 'd', 'g', 'f', 'i', 'b', 'e', 'h' ],
+        [ 'a', 'c', 'f', 'i', 'd', 'g', 'b', 'e', 'h' ]
+      ]);
     })
   })
 })

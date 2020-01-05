@@ -1,7 +1,7 @@
 const { MazeRunner } = require('../lib/mazeRunner')
 
 class LockedMazeRunner extends MazeRunner {
-  static async parse(linesAsync, validTileChars = '.@', lockChars = 'ABCDEFGHIJKLM', keyChars = 'abcdefghijklm') {
+  static async parse(linesAsync, validTileChars = '.@', lockChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', keyChars = 'abcdefghijklmnopqrstuvwxyz') {
     const parsedTiles = await MazeRunner.parseTiles(linesAsync, validTileChars, lockChars, keyChars);
   
     const maze = new LockedMazeRunner(parsedTiles, validTileChars, lockChars, keyChars);
