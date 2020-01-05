@@ -42,12 +42,10 @@ async function part1() {
 }
 
 async function part2() {
-  // console.log(chalk.yellowBright(`Find the 100x100 square closest to the emitter that fits entirely within the tractor beam`));
-  // let t0 = Date.now();
+  console.log(chalk.yellowBright(`After updating your map and using the remote-controlled robots, what is the fewest steps necessary to collect all of the keys?`));
+  let t0 = Date.now();
 
   
-  // console.log('Find the point closest to the emitter', coord); //, (coord === [877, 1057]) ? '🏆' : '❌');
-  // let result = coord[0] * 10000 + coord[1];
-  // console.log('X coordinate, multiply it by 10000, then add Y coordinate', result, (result === 8771057) ? '🏆' : '❌');
-  // console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
+  console.log('Fewest steps necessary', shortestDistance, (shortestDistance === -1) ? '🏆' : '❌');
+  console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }
