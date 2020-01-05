@@ -1,86 +1,124 @@
 const { MazeRunner } = require('../lib/mazeRunner')
 
 class LockedMazeRunner extends MazeRunner {
-  static async parse(linesAsync, validChars = '.@', lockChars = 'ABCDEFGHIJKLM', keyChars = 'abcdefghijklm') {
-    let mazeRunner = await MazeRunner.parse(linesAsync, validChars + keyChars + lockChars)
-    return new LockedMazeRunner([...mazeRunner.tiles], validChars, lockChars, keyChars);
+  static async parse(linesAsync, validTileChars = '.@', lockChars = 'ABCDEFGHIJKLM', keyChars = 'abcdefghijklm') {
+    const parsedTiles = await MazeRunner.parseTiles(linesAsync, validTileChars, lockChars, keyChars);
+  
+    const maze = new LockedMazeRunner(parsedTiles, validTileChars, lockChars, keyChars);
+    return maze;
   }
 
-  constructor(tiles, validChars, lockChars, keyChars) {
-    super(tiles, validChars);
+  constructor(parsedTiles, validChars, lockChars, keyChars) {
+    let allTiles = [...parsedTiles[validChars], ...parsedTiles[keyChars], ...parsedTiles[lockChars]];
+    super(allTiles, validChars + keyChars + lockChars);
 
-    tiles = tiles.map((tile) => tile.clone());
-    this._unlockedMaze = new MazeRunner(tiles, validChars + keyChars + lockChars);
-    this._unlockedMaze.linkTiles();
-
-    this._keys = new Map();
-    for (const char of keyChars) {
-      const tile = this._aliases.get(char);
-      if (tile) {
-        this._keys.set(char, tile);
-      }
-    }
-    
-    this._locks = new Map();
-    for (const char of lockChars) {
-      const tile = this._aliases.get(char);
-      if (tile) {
-        this._locks.set(char, tile);
-        this._tiles.delete(tile.key);
-        this._aliases.delete(tile.id);
-      }
-    }
-
-    this._lockKeyMap = new Map();
-    this._keyLockMap = new Map();
-    [...lockChars].forEach((lockChar, idx) => {
-      let keyChar = keyChars[idx];
-      this._lockKeyMap.set(lockChar, keyChar);
-      this._keyLockMap.set(keyChar, lockChar);
-    });
+    this._keyChars = parsedTiles[keyChars].map(t => t.char).sort().join('');
+    this._lockChars = parsedTiles[lockChars].map(t => t.char).sort().join('');
   }
 
   get lockChars() {
-    return [...this._locks.keys()];
+    return this._lockChars;
   }
 
-  getLocksOnRoute(route) {
-    let array = route.map(char => this.lockChars.indexOf(char))
-      .filter(idx => idx > -1)
-      .map(idx => this.lockChars[idx])
-      .map(lockId => [this._lockKeyMap.get(lockId), lockId]);
-    return new Map(array);
+  get keyChars() {
+    return this._keyChars;
   }
 
-  getKeysOnRoute(route) {
-    return route.filter(char => this._keys.has(char));
+  linkTiles() {
+    super.linkTiles((tile) => this.linkLocksAndKeys(tile))
   }
 
-  shortestUnlockedRoutes(fromKey, toKey, maxSteps) {
-    let routes = this._unlockedMaze.shortestRoutes(fromKey, toKey, maxSteps);
-    return routes;
-  }
+  linkLocksAndKeys(tile) {
+    const maze = this;
 
-  unlockTile(lockId) {
-    const lockedTile = this._locks.get(lockId);
-    if (!lockedTile) return false;
-    this.addTile(lockedTile);
-    this._locks.delete(lockId);
-    return true;
-  }
-
-  useKey(keyId) {
-    const lockId = this._keyLockMap.get(keyId);
-    const lockedTile = this._locks.get(lockId);
-    if (lockedTile && !this.unlockTile(lockId)) {
-      throw `Unable to unlock lock (${lockId}) with key (${keyId})`;
+    function isKeyTile(tile) {
+      if (!tile) return false;
+      const idx = maze.keyChars.indexOf(tile.char);
+      return idx > -1;
     }
-    this._keys.delete(keyId);
-  }
 
-  useKeysOnRoute(route) {
-    for(const key of this.getKeysOnRoute(route)) {
-      this.useKey(key);
+    function isLockTile(tile) {
+      if (!tile) return false;
+      const idx = maze.lockChars.indexOf(tile.char);
+      return idx > -1;
+    }
+
+    function getKeyLockPair(tile) {
+      const char = tile.char;
+      const keys = maze.keyChars;
+      const locks = maze.lockChars;
+      let key = false, lock = false;
+
+      if (keys.indexOf(char) > -1) {
+        key = char;
+        if (locks.indexOf(key.toUpperCase()) > -1) {
+          lock = key.toUpperCase();
+        }
+      } else if (locks.indexOf(char) > -1) {
+        lock = char;
+        if (keys.indexOf(lock.toLowerCase()) > -1) {
+          key = lock.toLowerCase();
+        }
+      }
+      
+      return [key, lock];
+    }
+
+    function isLocked(tile, state = '') {
+      if (!tile) return true;
+      if (!isLockTile(tile)) return false;
+      let [key, lock] = getKeyLockPair(tile);
+      return !!lock && state.indexOf(key) === -1;
+    }
+
+    function createCanVisitFn(maze, tile, linkedTile) {
+      return (state) => !isLocked(tile, state) && !isLocked(linkedTile, state);
+    }
+
+    function createOnVisitFn(maze, tile, linkedTile) {
+      if (!isKeyTile(linkedTile)) {
+        return defaultOnVisitFn;
+      } else {
+        return keyTileOnVisitFn;
+      }
+
+      function defaultOnVisitFn(state) {
+        return state; 
+      }
+
+      function keyTileOnVisitFn(state) {
+        let [key, lock] = getKeyLockPair(linkedTile)
+      
+        if (key && state.indexOf(key) === -1) {
+          let arr = state.split('');
+          arr.push(key);
+          arr.sort();
+          state = arr.join('');
+        }
+
+        return state;
+      }
+    }
+
+    function conditionalLink(key) {
+      function getSmartLink(maze) {
+        const linkedTile = maze.get(key);
+        if (linkedTile === undefined) return {};
+        const canVisit = createCanVisitFn(maze, tile, linkedTile);
+        const onVisit = createOnVisitFn(maze, tile, linkedTile);
+        return { linkedTile, fns: { canVisit, onVisit } };
+      }
+
+      return getSmartLink;
+    }
+
+    return {
+      E: conditionalLink(String([tile.x + 1, tile.y])),
+      W: conditionalLink(String([tile.x - 1, tile.y])),
+      N: conditionalLink(String([tile.x, tile.y - 1])),
+      S: conditionalLink(String([tile.x, tile.y + 1])),
+      // NB: StateFns are directional & specific to `tile` so no reverseLink.
+      // _reverseLink: {}
     }
   }
 }

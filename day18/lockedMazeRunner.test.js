@@ -29,115 +29,104 @@ describe('Maze With Keys', () => {
 
     test('Locked maze cannot navigate from @ to b', async () => {
       const linesAsync = createStreamFromString(example1)
-      const mazeLocked = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
+      const maze = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
+      const lockedState = '';
 
-      mazeLocked.linkTiles();
+      maze.linkTiles();
 
-      let shortestDistance = mazeLocked.shortestDistance('@', 'b');
+      let shortestDistance = maze.shortestDistance('@', 'b', lockedState);
       expect(shortestDistance).toEqual(-1);
 
-      let shortestRoutes = mazeLocked.shortestRoutes('@', 'b');
+      let shortestRoutes = maze.shortestRoutes('@', 'b', lockedState);
       expect(shortestRoutes).toEqual([]);
     })
 
-    test('Inner Unlocked maze *can* navigate from @ to b', async () => {
+    test('Unlocked maze *can* navigate from @ to b', async () => {
       const linesAsync = createStreamFromString(example1)
-      const mazeLocked = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
+      const maze = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
+      const unlockedState = maze.keyChars;
 
-      mazeLocked.linkTiles();
+      maze.linkTiles();
 
-      let shortestDistance = mazeLocked._unlockedMaze.shortestDistance('@', 'b');
+      expect(maze.keyChars).toEqual('ab');
+      expect(maze.lockChars).toEqual('A');
+
+      let shortestDistance = maze.shortestDistance('@', 'b', unlockedState);
       expect(shortestDistance).toEqual(4);
 
-      let shortestRoutes = mazeLocked._unlockedMaze.shortestRoutes('@', 'b');
+      let shortestRoutes = maze.shortestRoutes('@', 'b', unlockedState);
       expect(shortestRoutes).toEqual([
         ['@', '4,1', 'A', '2,1', 'b']
       ]);
+
+      maze.shortestDistance('@', 'b');
+      expect(shortestDistance).toEqual(4);
     })
 
     test('Shortest Routes (locked and unlocked)', async () => {
       const linesAsync = createStreamFromString(example1)
-      const mazeLocked = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
-      mazeLocked.linkTiles();
+      const maze = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
+      const lockedState = '';
+      const unlockedState = maze.keyChars;
+      maze.linkTiles();
 
       let shortestRoutes;
 
-      shortestRoutes = mazeLocked.shortestRoutes('@', 'b');
+      shortestRoutes = maze.shortestRoutes('@', 'b', lockedState);
       expect(shortestRoutes).toEqual([]);
       
-      shortestRoutes = mazeLocked.shortestUnlockedRoutes('@', 'b');
+      shortestRoutes = maze.shortestRoutes('@', 'b', unlockedState);
       expect(shortestRoutes).toEqual([
         ['@', '4,1', 'A', '2,1', 'b']
       ]);
 
-      shortestRoutes = mazeLocked.shortestRoutes('@', 'b');
-      expect(shortestRoutes).toEqual([]);
-    })
-
-    test('Unlock single tile', async () => {
-      const linesAsync = createStreamFromString(example1)
-      const maze = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
-      maze.linkTiles();
-
-      let shortestDistance = maze.shortestDistance('@', 'b');
-      expect(shortestDistance).toEqual(-1);
-
-      maze.unlockTile('A')
-
-      shortestDistance = maze.shortestDistance('@', 'b');
-      expect(shortestDistance).toEqual(4);
-    })
-
-    test('Unlock doors', async () => {
-      const linesAsync = createStreamFromString(example1)
-      const maze = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
-      maze.linkTiles();
-
-      let shortestDistance = maze.shortestDistance('@', 'b');
-      expect(shortestDistance).toEqual(-1);
-
-      let routes = maze.shortestUnlockedRoutes('@', 'b');
-      let doors = routes[0].filter(char => maze.lockChars.indexOf(char) > -1);
-
-      expect(doors).toEqual(['A']);
-
-      for (const door of doors) {
-        maze.unlockTile(door)
-      }
-
-      shortestDistance = maze.shortestDistance('@', 'b');
-      expect(shortestDistance).toEqual(4);
-    })
-
-    test('Find & use keys', async () => {
-      const linesAsync = createStreamFromString(example1)
-      const maze = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
-      maze.linkTiles();
-
-      let segments = [];
-
-      let shortestUnlockedRoutes = maze.shortestUnlockedRoutes('@', 'b');
-      let doorsToUnlock = maze.getLocksOnRoute(shortestUnlockedRoutes[0]);
-
-      let routes;
-
-      let key = [...doorsToUnlock.keys()][0];
-      routes = maze.shortestRoutes('@', key);
-      segments.push(routes[0]);
-      maze.useKeysOnRoute(routes[0])
-
-      routes = maze.shortestRoutes(key, 'b');
-      segments.push(routes[0]);
-      maze.useKeysOnRoute(routes[0])
-
-      expect(segments).toEqual([
-        ['@', '6,1', 'a'],
-        ['a', '6,1', '@', '4,1', 'A', '2,1', 'b']
+      shortestRoutes = maze.shortestRoutes('@', 'b', lockedState, '*');
+      expect(shortestRoutes).toEqual([
+        [ '@', '6,1', 'a', '6,1', '@', '4,1', 'A', '2,1', 'b' ]
       ]);
-      
-      let totalDistance = segments.map(s => s.length - 1).reduce((p,c) => p+c)
-      expect(totalDistance).toBe(8);
+
+      unlockedState;
+      shortestRoutes = maze.shortestRoutes('@', 'b', lockedState, unlockedState);
+      expect(shortestRoutes).toEqual([
+        [ '@', '6,1', 'a', '6,1', '@', '4,1', 'A', '2,1', 'b' ]
+      ]);
     })
   })
 
+  describe('Day 18, example 2', () => {
+    const example2 = `
+    ########################
+    #f.D.E.e.C.b.A.@.a.B.c.#
+    ######################.#
+    #d.....................#
+    ########################
+    `;
+    // ########################
+    // #f...E.e...............#
+    // ######################.#
+    // #@.....................#
+    // ########################
+    // Finally, collect key e to unlock door E, then collect key f, taking a grand total of 86 steps.
+
+    test('Locked maze can navigate from @ to f', async () => {
+      const linesAsync = createStreamFromString(example2)
+      const mazeLocked = await LockedMazeRunner.parse(linesAsync, mazeValidChars, mazeLockChars, mazeKeyChars);
+
+      mazeLocked.linkTiles();
+
+      let shortestDistance;
+
+      shortestDistance = mazeLocked.shortestDistance('@', 'd', '', 'abcd');
+      expect(shortestDistance).toEqual(42);
+
+      shortestDistance = mazeLocked.shortestDistance('d', 'f', 'abcd', '*');
+      expect(shortestDistance).toEqual(44);
+
+      shortestDistance = mazeLocked.shortestDistance('@', 'f', '', '*');
+      expect(shortestDistance).toEqual(86);
+
+      // let shortestRoutes = mazeLocked.shortestRoutes('@', 'f', '', '*');
+      // expect(shortestRoutes).toEqual([]);
+    })
+  })
 })
