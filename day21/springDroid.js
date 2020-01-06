@@ -13,17 +13,22 @@ class SpringDroid {
 
   async loadSpringScript(springScript) {
     this._script = springScript;
-    this._input = 'NOT D J\n'
+    this._input = springScript
+      .split('\n')        // Split lines.
+      .map(s => s.trim()) // Trim whitespace.
+      .filter(s => s)     // Remove empty lines.
+      .map(s => s + '\n') // All lines end in a newline.
+      .join('');
     this._intcode = await loadIntcodeFile(this._filename);
   }
 
   async walk() {
     this._input += 'WALK\n';
-    this._inputBuffer = this._input.split('');
+    this._inputBuffer = this._input.split('').map(ch => ch.charCodeAt(0));
 
     const inputFn = () => {
       const input = this._inputBuffer.shift();
-      this.logInput(input.charCodeAt(0));
+      this.logInput(input);
       return input;
     }
     const outputs = [];
@@ -36,13 +41,30 @@ class SpringDroid {
     this._result = outputs;
   }
 
+  get result() {
+    return this._output[0];
+  }
+
+  get lastMoments() {
+    return this._output.map(ch => String.fromCharCode(ch)).join('');
+  }
+
+  get log() {
+    return this._logHistory.map((chars, i) => {
+      let line = chars.map(ch => String.fromCharCode(ch)).join('');
+      return i % 2 ? '>' + line : line;
+    }).join('\n')
+  }
+
   setLogMode(logMode) {
+    // If the output mode has changed, start a new line.
     if (this._logMode !== logMode) {
       this._logMode = logMode;
 
       this._log = [];
       this._logHistory.push(this._log);
 
+      // Ensure we only capture the final output in `this._output`
       if (logMode === SpringDroid.MODE_OUTPUT) {
         this._output = this._log;
       }
@@ -57,21 +79,6 @@ class SpringDroid {
   logOutput(ch) {
     this.setLogMode(SpringDroid.MODE_OUTPUT);
     this._log.push(ch);
-  }
-
-  result() {
-    return this._result[0];
-  }
-
-  lastMoments() {
-    return this._result.map(ch => String.fromCharCode(ch)).join('');
-  }
-
-  log() {
-    return this._logHistory.map((chars, i) => {
-      let line = chars.map(ch => String.fromCharCode(ch)).join('');
-      return i % 2 ? '>' + line : line;
-    }).join('\n')
   }
 }
 
