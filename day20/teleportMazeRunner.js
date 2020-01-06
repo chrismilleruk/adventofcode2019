@@ -9,6 +9,27 @@ class TeleportMazeRunner extends MazeRunner {
     const specialTiles = new Map(parsedTiles[labelTileChars].map(tile => [tile.key, tile]));
     const links = new Map();
 
+    // This helps us work out if the tile is an outer or an inner tile.
+    let bounds = {
+      xMin: Infinity,
+      xMax: 0,
+      yMin: Infinity,
+      yMax: 0,
+      update: (tile) => {
+        bounds.xMin = Math.min(bounds.xMin, tile.x);
+        bounds.xMax = Math.max(bounds.xMax, tile.x);
+        bounds.yMin = Math.min(bounds.yMin, tile.y);
+        bounds.yMax = Math.max(bounds.yMax, tile.y);
+      },
+      getDist: (tile) => {
+        let x = Math.abs(tile.x - bounds.xMin);
+        x = Math.min(x, Math.abs(tile.x - bounds.xMax));
+        let y = Math.abs(tile.y - bounds.yMin);
+        y = Math.min(y, Math.abs(tile.y - bounds.yMax));
+        return Math.min(x, y);
+      }
+    };
+
     for (const tile1 of specialTiles.values()) {
       let tile2;
       let linkName;
@@ -50,6 +71,8 @@ class TeleportMazeRunner extends MazeRunner {
 
       const mazeTile = maze.get(searchKey1) || maze.get(searchKey2);
 
+      bounds.update(mazeTile);
+
       if (!links.has(linkName)) links.set(linkName, []);
       links.get(linkName).push(mazeTile);
     }
@@ -60,8 +83,14 @@ class TeleportMazeRunner extends MazeRunner {
         continue;
       }
 
+      // tiles.map(t=>bounds.getDist(t));/*?*/
+      tiles.sort((a, b) => bounds.getDist(a) - bounds.getDist(b));
+      // links.get(linkName).sort((a, b) => bounds.getDist(a) - bounds.getDist(b));
+      // tiles.map(t=>bounds.getDist(t));/*?*/
+      // tiles;/*?*/
+
       tiles.forEach((tile, idx) => {
-        let name = linkName + (idx+1);
+        let name = linkName + (idx);
         tile.id = name;
       })
     }
@@ -71,18 +100,58 @@ class TeleportMazeRunner extends MazeRunner {
     return maze;
   }
 
-  linkTiles(generateLinkKeyMap = MazeRunner.linkNESW) {
-    super.linkTiles(generateLinkKeyMap);
+  linkTiles(generateTeleportFns = null) {
+    super.linkTiles(MazeRunner.linkNESW);
 
     // Create the teleport links
     for (const [linkName, tiles] of this._teleportTiles) {
       if (tiles.length !== 2) continue;
 
-      let args = tiles.map(tile => tile.id);
-      args.push(linkName);
+      let tileInner = this.get(tiles[0].id);
+      let tileOuter = this.get(tiles[1].id);
 
-      this.addLink.apply(this, args);
+      if (generateTeleportFns) {
+        let teleportFns = generateTeleportFns(tileOuter, tileInner)
+        tileOuter.linkTo(tileInner, linkName, teleportFns.outerFns);
+        tileInner.linkTo(tileOuter, linkName, teleportFns.innerFns);
+  
+      } else {
+        tileOuter.linkTo(tileInner, linkName);
+        tileInner.linkTo(tileOuter, linkName);
+      }
+
+      this.cacheClear();
     }
+  }
+
+  static generateTeleportFns(tileOuter, tileInner) {
+    function canAlwaysVisit(state) {
+      return true;
+    }
+    function canVisitIfTopLevel(state) {
+      return !(state);
+    }
+    function canVisitIfNotTopLevel(state) {
+      return (state > 0);
+    }
+    function descend(state) {
+      return (state || 0) + 1;
+    }
+    function ascend(state) {
+      state = (state || 0) - 1;
+      return state;
+    }
+
+    return {
+      innerFns: { // on traversing outer -> inner
+        canVisit: canVisitIfNotTopLevel,
+        onVisit: ascend 
+      },
+      outerFns: { // On traversing inner -> outer
+        canVisit: canAlwaysVisit,
+        onVisit: descend 
+      }
+    };
   }
 }
 

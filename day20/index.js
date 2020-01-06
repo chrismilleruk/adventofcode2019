@@ -11,7 +11,7 @@ if (require.main === module) {
   (async () => {
     try {
       await part1();
-      // await part2();
+      await part2();
 
     } catch (ex) {
       console.error(ex);
@@ -84,17 +84,27 @@ async function part1() {
     cursor.close('Distance', shortestDistance);
   }
 
-  console.log(shortestRoutes[0].filter(key => maze._aliases.has(key)));
   console.log('Shortest Distance from AA to ZZ', shortestDistance, (shortestDistance === 442) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
+  console.log(shortestRoutes[0].filter(key => maze._aliases.has(key)));
 }
 
 async function part2() {
-  console.log(chalk.yellowBright(`Find the ...`));
+  console.log(chalk.yellowBright(`When accounting for recursion, how many steps does it take to get from the open tile marked AA to the open tile marked ZZ, both at the outermost layer?`));
   let t0 = Date.now();
 
   let result = false;
+  const mazeLabelChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const mazeValidChars = '.@';
+  const linesAsync = createStreamFromFile(filename, false)
+  const maze = await TeleportMazeRunner.parse(linesAsync, mazeValidChars, mazeLabelChars);
 
-  console.log('Find the ...', result, (result === true) ? '🏆' : '❌');
+  maze.linkTiles(TeleportMazeRunner.generateTeleportFns);
+
+  let shortestDistance = maze.shortestDistance('AA', 'ZZ', 0, 0);
+  console.log('Shortest Distance from AA(0) to ZZ(0)', shortestDistance, (shortestDistance === 5208) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
+
+  let shortestRoutes = maze.shortestRoutes('AA', 'ZZ', 0, 0);
+  console.log(shortestRoutes[0].filter(key => maze._aliases.has(key)));
 }

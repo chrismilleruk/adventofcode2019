@@ -7,7 +7,7 @@ const filename = __dirname + '/input.txt';
 describe('Maze With Portals', () => {
   const mazeKeyChars = 'abcdefgz';
   const mazeLabelChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const mazeValidChars = '.@' + mazeKeyChars;
+  const mazeValidChars = '.@';// + mazeKeyChars;
 
   describe('Day 20, example 1, basic mechanics with MazeRunner', () => {
     //          A           
@@ -193,15 +193,15 @@ FG..#########.....#
 
       // BC = 9,6 -> 2,8
       expect(maze.get('9,6')).toHaveProperty('id', 'BC1');
-      expect(maze.get('2,8')).toHaveProperty('id', 'BC2');
+      expect(maze.get('2,8')).toHaveProperty('id', 'BC0');
 
       // DE = 6,10 -> 2,13
       expect(maze.get('6,10')).toHaveProperty('id', 'DE1');
-      expect(maze.get('2,13')).toHaveProperty('id', 'DE2');
+      expect(maze.get('2,13')).toHaveProperty('id', 'DE0');
 
       // FG = 11,12 -> 2,15
       expect(maze.get('11,12')).toHaveProperty('id', 'FG1');
-      expect(maze.get('2,15')).toHaveProperty('id', 'FG2');
+      expect(maze.get('2,15')).toHaveProperty('id', 'FG0');
     })
 
     test('TeleportMazeRunner, Run Maze', async () => {
@@ -226,9 +226,9 @@ FG..#########.....#
       // and finally walk to ZZ (6 steps). 
       expect(shortestRoutes).toEqual([
         ['AA',
-          '9,3', '9,4', '9,5', 'BC1', 'BC2',
-          '3,8', '4,8', '4,9', '4,10', '5,10', 'DE1', 'DE2',
-          '3,13', '3,14', '3,15', 'FG2', 'FG1',
+          '9,3', '9,4', '9,5', 'BC1', 'BC0',
+          '3,8', '4,8', '4,9', '4,10', '5,10', 'DE1', 'DE0',
+          '3,13', '3,14', '3,15', 'FG0', 'FG1',
           '11,13', '12,13', '13,13', '13,14', '13,15', 'ZZ']
       ])
 
@@ -319,15 +319,15 @@ FG..#########.....#
       // Tile { x: 25, y: 28, char: '.', links: [Object], _id: 'JP1' },
       // Tile { x: 19, y: 34, char: '.', links: [Object], _id: 'JP2' } ] }
 
-      expect(maze.shortestDistance('AS1', 'AS2')).toBe(1);
-      expect(maze.shortestDistance('QG1', 'QG2')).toBe(1);
-      expect(maze.shortestDistance('BU1', 'BU2')).toBe(1);
-      expect(maze.shortestDistance('JO1', 'JO2')).toBe(1);
+      expect(maze.shortestDistance('AS0', 'AS1')).toBe(1);
+      expect(maze.shortestDistance('QG0', 'QG1')).toBe(1);
+      expect(maze.shortestDistance('BU0', 'BU1')).toBe(1);
+      expect(maze.shortestDistance('JO0', 'JO1')).toBe(1);
       
-      expect(maze.shortestDistance('AA', 'AS2')).toBe(13);
-      expect(maze.shortestDistance('AA', 'QG2')).toBe(24);
-      expect(maze.shortestDistance('AA', 'BU2')).toBe(37);
-      expect(maze.shortestDistance('AA', 'JO2')).toBe(45);
+      expect(maze.shortestDistance('AA', 'AS1')).toBe(12);
+      expect(maze.shortestDistance('AA', 'QG1')).toBe(23);
+      expect(maze.shortestDistance('AA', 'BU1')).toBe(36);
+      expect(maze.shortestDistance('AA', 'JO1')).toBe(45);
 
       // Here, AA has no direct path to ZZ, but it does connect to AS and CP. 
 
@@ -338,10 +338,10 @@ FG..#########.....#
       expect(shortestDistance).toEqual(58);
 
       expect(shortestRoutes).toHaveLength(1);
-      expect(shortestRoutes[0]).toContain('AS1');
-      expect(shortestRoutes[0]).toContain('QG1');
-      expect(shortestRoutes[0]).toContain('BU1');
-      expect(shortestRoutes[0]).toContain('JO1');
+      expect(shortestRoutes[0]).toContain('AS0');
+      expect(shortestRoutes[0]).toContain('QG0');
+      expect(shortestRoutes[0]).toContain('BU0');
+      expect(shortestRoutes[0]).toContain('JO0');
     })
 
     // In your maze, how many steps does it take to get from the open tile 
@@ -363,6 +363,120 @@ FG..#########.....#
 
       // That's not the right answer; your answer is too high. (You guessed 452.)
       expect(shortestDistance).toBe(442);
+    })
+  })
+
+
+  describe('Day 20, Part 2, Example 3', () => {
+    const example3 = `
+             Z L X W       C                 
+             Z P Q B       K                 
+  ###########.#.#.#.#######.###############  
+  #...#.......#.#.......#.#.......#.#.#...#  
+  ###.#.#.#.#.#.#.#.###.#.#.#######.#.#.###  
+  #.#...#.#.#...#.#.#...#...#...#.#.......#  
+  #.###.#######.###.###.#.###.###.#.#######  
+  #...#.......#.#...#...#.............#...#  
+  #.#########.#######.#.#######.#######.###  
+  #...#.#    F       R I       Z    #.#.#.#  
+  #.###.#    D       E C       H    #.#.#.#  
+  #.#...#                           #...#.#  
+  #.###.#                           #.###.#  
+  #.#....OA                       WB..#.#..ZH
+  #.###.#                           #.#.#.#  
+CJ......#                           #.....#  
+  #######                           #######  
+  #.#....CK                         #......IC
+  #.###.#                           #.###.#  
+  #.....#                           #...#.#  
+  ###.###                           #.#.#.#  
+XF....#.#                         RF..#.#.#  
+  #####.#                           #######  
+  #......CJ                       NM..#...#  
+  ###.#.#                           #.###.#  
+RE....#.#                           #......RF
+  ###.###        X   X       L      #.#.#.#  
+  #.....#        F   Q       P      #.#.#.#  
+  ###.###########.###.#######.#########.###  
+  #.....#...#.....#.......#...#.....#.#...#  
+  #####.#.###.#######.#######.###.###.#.#.#  
+  #.......#.......#.#.#.#.#...#...#...#.#.#  
+  #####.###.#####.#.#.#.#.###.###.#.###.###  
+  #.......#.....#.#...#...............#...#  
+  #############.#.#.###.###################  
+               A O F   N                     
+               A A D   M                     
+    `;
+
+    test('basic tests.', async () => {
+      const linesAsync = createStreamFromString(example3, false)
+      const maze = await TeleportMazeRunner.parse(linesAsync, mazeValidChars, mazeLabelChars);
+
+      maze.linkTiles(TeleportMazeRunner.generateTeleportFns);
+
+      // Outer is always (xx1), Inner is always (xx2)
+      expect(maze.get('AA').key).toBe('15,34')  // Outer
+      expect(maze.get('ZZ').key).toBe('13,2')   // Outer
+      
+      // Top row. x = 2
+      expect(maze.get('WB0').key).toBe('19,2')  // Outer
+      expect(maze.get('WB1').key).toBe('36,13')
+
+      // Bottom row. y = 34
+      expect(maze.get('FD0').key).toBe('19,34') // Outer
+      expect(maze.get('FD1').key).toBe('13,8')
+
+      // Left side. x = 2
+      expect(maze.get('XF0').key).toBe('2,21')  // Outer
+      expect(maze.get('XF1').key).toBe('17,28')
+
+      // Right side. x = 42
+      expect(maze.get('ZH0').key).toBe('42,13')  // Outer
+      expect(maze.get('ZH1').key).toBe('31,8')
+
+      // Inner(1) to Outer(0) will step down a level
+      expect(maze.shortestDistance('WB1', 'WB0', 0, 1)).toBe(1);
+      expect(maze.shortestDistance('WB1', 'WB0', '', 1)).toBe(1);
+      expect(maze.shortestDistance('WB1', 'WB0', 1, 2)).toBe(1);
+
+      expect(maze.shortestDistance('FD1', 'FD0', 0, 1)).toBe(1);
+
+      // Outer(0) to Inner(1) will step up a level
+      expect(maze.shortestDistance('FD0', 'FD1', 1, 0)).toBe(1);
+
+      // FD2 directly connects to ZZ on same level.
+      expect(maze.shortestDistance('FD1', 'ZZ', 0, 0)).toBe(18);
+
+      // Traverse up a level.
+      expect(maze.shortestDistance('FD0', 'ZZ', 1, 0)).toBe(19);
+      expect(maze.shortestDistance('XQ0', 'FD0', 1, 0)).toBe(9);
+      expect(maze.shortestDistance('XQ0', 'ZZ', 2, 0)).toBe(28);
+
+      // expect(maze.shortestDistance('WB0', 'WB1')).toBe(1);
+      // expect(maze.shortestDistance('XF0', 'XF1')).toBe(1);
+      // expect(maze.shortestDistance('BU0', 'BU1')).toBe(1);
+      // expect(maze.shortestDistance('JO0', 'JO1')).toBe(1);
+      
+      // expect(maze.shortestDistance('AA', 'AS1')).toBe(13);
+      // expect(maze.shortestDistance('AA', 'QG1')).toBe(24);
+      // expect(maze.shortestDistance('AA', 'BU1')).toBe(37);
+      // expect(maze.shortestDistance('AA', 'JO1')).toBe(45);
+    });
+
+    test('396 steps to move from AA at the outermost layer to ZZ at the outermost layer.', async () => {
+      const linesAsync = createStreamFromString(example3, false)
+      const maze = await TeleportMazeRunner.parse(linesAsync, mazeValidChars, mazeLabelChars);
+
+      maze.linkTiles(TeleportMazeRunner.generateTeleportFns);
+
+      // This path takes a total of 396 steps to move from AA at the outermost layer to ZZ at the outermost layer.
+      let shortestRoutes = maze.shortestRoutes('AA', 'ZZ', 0, 0);
+      let shortestDistance = maze.shortestDistance('AA', 'ZZ', 0, 0);
+
+      expect(shortestDistance).toEqual(396);
+
+      expect(shortestRoutes).toHaveLength(1);
+      // expect(shortestRoutes[0]).toContain('AS1');
     })
   })
 })
