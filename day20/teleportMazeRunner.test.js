@@ -408,7 +408,7 @@ RE....#.#                           #......RF
                A A D   M                     
     `;
 
-    test('basic tests.', async () => {
+    test.skip('basic tests.', async () => {
       const linesAsync = createStreamFromString(example3, false)
       const maze = await TeleportMazeRunner.parse(linesAsync, mazeValidChars, mazeLabelChars);
 
