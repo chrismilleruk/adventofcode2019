@@ -9,7 +9,7 @@ if (require.main === module) {
   (async () => {
     try {
       await part1();
-      await part2();
+      // await part2();
 
     } catch (ex) {
       console.error(ex);
@@ -18,54 +18,37 @@ if (require.main === module) {
 }
 
 async function part1() {
-  console.log(chalk.yellowBright(`How many points are affected by the tractor beam in the 50x50 area closest to the emitter?`));
+  console.log(chalk.yellowBright(`Program the springdroid with logic that allows it to survey the hull without falling into space.`));
   let t0 = Date.now();
 
-  let gridSize = [50, 50]
-
-  const cursor = preparePlotArea(process.stdout, gridSize[0] / 2, gridSize[1] / 2);
-  cursor.setOffset({ x: 0, y: 0 });
-  cursor.moveTo(0, 0);
-  
   let program = `
-  NOT A J
-  NOT B T
-  AND T J
   NOT C T
-  AND T J
+  OR T J
+  NOT A T
+  OR T J
   AND D J
   `;
   const springDroid = new SpringDroid(filename);
-  await springDroid.loadSpringScriptProgram(program);
+  await springDroid.loadSpringScript(program);
   await springDroid.walk();
 
-  let panelMap = new Map();
-  let totalAffected = 0;
-
-  for await (const panel of springDroid.testGrid(gridSize[0], gridSize[1]))
-  {
-    plotPanelAsBlock(cursor, panel, panelMap);
-    if (panel.color === 1) {
-      totalAffected += 1;
+  for (const line of springDroid.log.split('\n')) {
+    if (line.startsWith('>')) {
+      console.log(chalk.green(line));
+    } else {
+      console.log(chalk.gray(line));
     }
   }
 
-  cursor.close('Affected', totalAffected);
-  console.log('Points affected', totalAffected, (totalAffected === 203) ? '🏆' : '❌');
+  let hullDamage = springDroid.result;
+  console.log('What amount of hull damage does it report?', hullDamage, (hullDamage === 19360288) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }
 
 async function part2() {
-  console.log(chalk.yellowBright(`Find the 100x100 square closest to the emitter that fits entirely within the tractor beam`));
+  console.log(chalk.yellowBright(`Part 2 instructions.`));
   let t0 = Date.now();
-
-  const droneSystem = new DroneSystem(filename);
-  await droneSystem.loadTractorBeamTestProgram();
-
-  const coord = await droneSystem.findSpaceFor(100, 100, 10000);
-
-  console.log('Find the point closest to the emitter', coord); //, (coord === [877, 1057]) ? '🏆' : '❌');
-  let result = coord[0] * 10000 + coord[1];
-  console.log('X coordinate, multiply it by 10000, then add Y coordinate', result, (result === 8771057) ? '🏆' : '❌');
+  let result = 0;
+  console.log('Part 2 question', result, (result === 8771057) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }

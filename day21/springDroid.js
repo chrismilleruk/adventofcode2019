@@ -42,7 +42,7 @@ class SpringDroid {
   }
 
   get result() {
-    return this._output[0];
+    return this._output[this._output.length -1];
   }
 
   get lastMoments() {
