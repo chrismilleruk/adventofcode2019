@@ -24,6 +24,15 @@ class SpringDroid {
 
   async walk() {
     this._input += 'WALK\n';
+    return this.go();
+  }
+
+  async run() {
+    this._input += 'RUN\n';
+    return this.go();
+  }
+
+  async go() {
     this._inputBuffer = this._input.split('').map(ch => ch.charCodeAt(0));
 
     const inputFn = () => {
