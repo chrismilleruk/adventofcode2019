@@ -52,9 +52,15 @@ async function part2() {
   let program = `
   NOT C T
   OR T J
+  NOT B T
+  OR T J
   NOT A T
   OR T J
   AND D J
+  NOT D T
+  OR E T
+  OR H T
+  AND T J
   `;
   const springDroid = new SpringDroid(filename);
   await springDroid.loadSpringScript(program);
@@ -69,6 +75,6 @@ async function part2() {
   }
 
   let hullDamage = springDroid.result;
-  console.log('What amount of hull damage does it report?', hullDamage, (hullDamage === 19360288) ? '🏆' : '❌');
+  console.log('What amount of hull damage does it report?', hullDamage, (hullDamage === 1143814750) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }
