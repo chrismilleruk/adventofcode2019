@@ -107,7 +107,6 @@ class Shuffler {
 
   async shuffle(linesAsync) {
     for await (const cards of this.shuffleIterator(linesAsync)) {
-      cards/*?*/
     }
     return this.deck.cards;
   }

@@ -31,10 +31,13 @@ async function part1() {
 }
 
 async function part2() {
-  console.log(chalk.yellowBright(`Part 2.`));
+  console.log(chalk.yellowBright(`After shuffling your new, giant, factory order deck that many times, what number is on the card that ends up in position 2020?`));
   let t0 = Date.now();
+
+  // a single, giant, brand new, factory order deck of 119315717514047 space cards
+  // Shuffle the deck 101741582076661 times in a row.
   
   let result = -1;
-  console.log('What is the result?', result, (result === 1143814750) ? '🏆' : '❌');
+  console.log('What number is on the card that ends up in position 2020?', result, (result === 0) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }

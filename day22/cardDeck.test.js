@@ -139,10 +139,35 @@ describe('Slam Shuffle', () => {
     expect(shuffler.deck.cards).toEqual([9, 2, 5, 8, 1, 4, 7, 0, 3, 6])
   })
 
-  test('Shuffler puzzle input', async () => {
+  test('Shuffler puzzle input, deck 1007', async () => {
     const linesAsync = createStreamFromFile(filename);
     const shuffler = new Shuffler(10007);
     await shuffler.shuffle(linesAsync);
     expect(shuffler.deck.cards.indexOf(2019)).toEqual(6129)
+  })
+
+  test('Shuffler puzzle input, deck 119315717514047', async () => {
+
+    // A single, giant, brand new, factory order deck of 119315717514047 space cards
+    const deckSize = 119315717514047;
+    // Shuffle the deck 101741582076661 times in a row.
+    const shuffleTimes = 101741582076661;
+
+    // Both numbers are < 2^47
+    expect(Math.ceil(Math.log2(deckSize))).toBe(47)
+    expect(Math.ceil(Math.log2(shuffleTimes))).toBe(47)
+
+    // Number.MAX_SAFE_INTEGER = 9007199254740991 = 2^53
+    expect(Number.isSafeInteger(deckSize)).toBe(true);
+    expect(Number.isSafeInteger(shuffleTimes)).toBe(true);
+    expect(Math.log2(Number.MAX_SAFE_INTEGER)).toBe(53);
+
+    // Storage requirements for a full deck are crazy. Way bigger than a petabyte (1000^5)
+    expect(Math.pow(2, 47+47)).toBeGreaterThan(Math.pow(1000, 5))
+
+    // In order to solve, we need to:
+    // 1) Start a position 2020 and work backwards.
+    // 2) Reverse calculations, noting that 'deal with increment' uses Mod (%)
+    // 3) Find a way to calculate more than one iteration at a time.
   })
 })
