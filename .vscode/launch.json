@@ -7,11 +7,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Day 22",
+            "name": "Launch Day 23",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/day22/index.js"
+            "program": "${workspaceFolder}/day23/index.js"
         }
     ]
 }
