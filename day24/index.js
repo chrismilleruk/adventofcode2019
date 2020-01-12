@@ -23,14 +23,11 @@ async function part1() {
   const linesAsync = createStreamFromFile(filename);
   const emulator = await BugLife.fromStream(linesAsync);
 
-  let count = 0;
-
   const ratingsAlreadySeen = new Set();
 
   while (!ratingsAlreadySeen.has(emulator.biodiversityRating) ) {
     ratingsAlreadySeen.add(emulator.biodiversityRating);
     emulator.step();
-    count += 1;
   }
 
   let result = emulator.biodiversityRating;
@@ -40,10 +37,18 @@ async function part1() {
 }
 
 async function part2() {
-  console.log(chalk.yellowBright(`Part 2?`));
+  console.log(chalk.yellowBright(`Starting with your scan, how many bugs are present after 200 minutes?`));
   let t0 = Date.now();
 
-  let result = -1;
-  console.log('Part 2?', result, (result === 0) ? '🏆' : '❌');
+  const linesAsync = createStreamFromFile(filename);
+  const emulator = await BugLife.fromStream(linesAsync);
+
+  let count = 200;
+  while (count--) {
+    emulator.stepRecursive();
+  }
+
+  let result = emulator.totalBugs;
+  console.log('Bugs present after 200 minutes:', result, (result === 1980) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }
