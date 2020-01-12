@@ -2,15 +2,8 @@
 const { loadIntcodeFile } = require('../lib/loadIntcode');
 const { executeProgramAsGenerator } = require('../lib/intCodeComputer')
 
+/* ignore coverage since this is only used inside the worker. */
 class NetworkedComputer {
-  // /**
-  //  * 
-  //  * @param {string} programFilename Filename for the intcode source.
-  //  */
-  // constructor(programFilename) {
-  //   this._filename = programFilename
-  // }
-
   /**
    * 
    * @param {array<number>} program intcode array.
@@ -19,60 +12,81 @@ class NetworkedComputer {
     this._program = program
   }
 
+  static get messageType() {
+    return {
+      'MESSAGE': -1,
+      'IDLE': -2,
+      'BUSY': -3
+    };
+  }
+
   /**
    * Initialise the networked computer.
    * @param {Number} address The network address of this computer.
-   * @param {(address:Number, X:Number, Y:Number)=> void onMessageSend Called whenever this computer sends a message. 
+   * @param {(messageType:Number, address:Number, X:Number, Y:Number) => void} sendMessage Called whenever this computer sends a message. 
    */
-  async init(address = 0, onMessageSend) {
+  async init(address = 0, sendMessage) {
     this.address = address;
-    this.onMessage = onMessageSend;
+
+    this.onMessage = (...args) => { 
+      sendMessage(NetworkedComputer.messageType.MESSAGE, ...args); 
+    };
+
+    this.idleSince = 0;
+    this.onIdle = (isIdle) => { 
+      if (isIdle && this.idleSince === 0) {
+        this.idleSince = Date.now();
+        sendMessage(NetworkedComputer.messageType.IDLE, address, Date.now());
+      }
+
+      if (!isIdle && this.idleSince) {
+        this.idleSince = 0;
+        sendMessage(NetworkedComputer.messageType.BUSY, address, Date.now()); 
+      }
+    };
+
     this.onInputBufferAdd = () => {};
     this.onOutputBufferAdd = () => {};
 
     this.inputBuffer = [address];
     this.outputBuffer = [];
-
-    // const program = await loadIntcodeFile(this._filename);
-    // this._program = program;
-    // this._generator = executeProgramAsGenerator(program, this._inputFn);
   }
 
-  /**
-   * Returns a promise which resolves once the input buffer is no longer empty.
-   * @param {Number?} length Optionally wait for a minimum length before resuming.
-   */
-  async waitForInputBuffer(length = 1) {
-    this.waitForInputBuffer.waiting = true;
-    const executor = (resolve) => {
-      this.onInputBufferAdd = () => {
-        if (this.inputBuffer.length >= length) {
-          this.waitForInputBuffer.waiting = false;
-          resolve();
-        }
-      };
-    };
+  // /**
+  //  * Returns a promise which resolves once the input buffer is no longer empty.
+  //  * @param {Number?} length Optionally wait for a minimum length before resuming.
+  //  */
+  // async waitForInputBuffer(length = 1) {
+  //   this.waitForInputBuffer.waiting = true;
+  //   const executor = (resolve) => {
+  //     this.onInputBufferAdd = () => {
+  //       if (this.inputBuffer.length >= length) {
+  //         this.waitForInputBuffer.waiting = false;
+  //         resolve();
+  //       }
+  //     };
+  //   };
 
-    return new Promise(executor)
-  }
+  //   return new Promise(executor)
+  // }
 
-  /**
-   * Returns a promise which resolves once the output buffer is no longer empty.
-   * @param {Number?} length Optionally wait for a minimum length before resuming.
-   */
-  async waitForOutputBuffer(length = 1) {
-    this.waitForOutputBuffer.waiting = true;
-    const executor = (resolve) => {
-      this.onOutputBufferAdd = () => {
-        if (this.outputBuffer.length >= length) {
-          this.waitForOutputBuffer.waiting = false;
-          resolve();
-        }
-      };
-    };
+  // /**
+  //  * Returns a promise which resolves once the output buffer is no longer empty.
+  //  * @param {Number?} length Optionally wait for a minimum length before resuming.
+  //  */
+  // async waitForOutputBuffer(length = 1) {
+  //   this.waitForOutputBuffer.waiting = true;
+  //   const executor = (resolve) => {
+  //     this.onOutputBufferAdd = () => {
+  //       if (this.outputBuffer.length >= length) {
+  //         this.waitForOutputBuffer.waiting = false;
+  //         resolve();
+  //       }
+  //     };
+  //   };
 
-    return new Promise(executor)
-  }
+  //   return new Promise(executor)
+  // }
 
   /**
    * Receives a message from another networked computer.
@@ -81,7 +95,6 @@ class NetworkedComputer {
   receive(...inputs) {
     this.inputBuffer = this.inputBuffer.concat(inputs);
     this.onInputBufferAdd();
-    // console.log(this.address, this.inputBuffer);
   }
 
   /**
@@ -90,7 +103,6 @@ class NetworkedComputer {
   async run() {
     for await (const output of executeProgramAsGenerator(this._program, this._inputFn.bind(this))) {
       this.outputBuffer.push(output);
-      output;/*?*/
       this.onOutputBufferAdd();
     
       if (this.outputBuffer.length >= 3) {
@@ -108,22 +120,17 @@ class NetworkedComputer {
     await new Promise(setImmediate);
 
     if (this.inputBuffer.length === 0) {
-      // console.log(this.address, 'input empty');
+      // Slow down when idle.
+      this.onIdle(true);
+      await new Promise(resolve => setTimeout(resolve, 20)); 
       return -1;
-      // await this.waitForInputBuffer();
     }
 
+    this.onIdle(false);
     const input = this.inputBuffer.shift();
     return input;
   }
 }
-
-class Network {
-    constructor(size) {
-
-    }
-}
-
 
 const { Worker, isMainThread, parentPort, workerData } = require('worker_threads');
 
@@ -133,7 +140,25 @@ class NetworkedComputerWorker extends Worker {
 
     this._address = address;
 
-    this.on('message', onMessage);
+    this.on('message', ([messageType, addr, x, y]) => {
+      switch (messageType) {
+        case NetworkedComputer.messageType.IDLE:
+          this._idleTime = x;
+          this.emit('idle', addr, this._idleTime);
+          return;
+        case NetworkedComputer.messageType.BUSY:
+          this.emit('busy', addr, this._idleTime);
+          this._idleTime = 0;
+          return;
+        case NetworkedComputer.messageType.MESSAGE:
+          onMessage(addr, x, y);
+          this.emit('network_message', addr, x, y);
+          return;
+        default:
+          /* ignore coverage */
+          throw `Unknown message type ${messageType}, ${addr}, ${x}, ${y}`
+      }
+    });
   }
 
   get address() {
@@ -143,19 +168,24 @@ class NetworkedComputerWorker extends Worker {
   sendMessage(...args) {
     this.postMessage(args);
   }
+
+  get idleTime() {
+    return this._idleTime;
+  }
 }
 
 if (isMainThread) {
-  module.exports = { NetworkedComputer, Network, NetworkedComputerWorker }
+  module.exports = { NetworkedComputer, NetworkedComputerWorker }
 } else {
   // console.debug('EHLO', workerData.address);
 
-  if (workerData.address < 250) {
+  /* ignore coverage since this is only used inside the worker. */
+  if (workerData.address < 255) {
     (async function() {
       const program = await loadIntcodeFile(workerData.filename);
       const nc = new NetworkedComputer(program);
 
-      const onMessageSend = (...args) => {
+      const sendMessage = (...args) => {
         // console.debug('<', workerData.address, ...args);
         parentPort.postMessage(args);
       };
@@ -165,7 +195,7 @@ if (isMainThread) {
         nc.receive(...args);
       })
 
-      await nc.init(workerData.address, onMessageSend);
+      await nc.init(workerData.address, sendMessage);
       await nc.run();
     })()
   }

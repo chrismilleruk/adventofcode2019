@@ -1,8 +1,4 @@
-const { NetworkedComputer, NetworkedComputerWorker } = require('./networkedComputer');
-const filename = __dirname + '/input.txt';
-
-const { Worker, isMainThread, workerData } = require('worker_threads');
-const workerFilename = __dirname + '/ncWorker.js';
+const { NetworkedComputerWorker } = require('./networkedComputer');
 
 describe('Networked Computer', () => {
   const workers = [];
@@ -19,19 +15,16 @@ describe('Networked Computer', () => {
   
   test('worker 0', async () => {
     const onMessageSend = jest.fn((...args) => console.log(args));
+    const onIdle = (...args) => console.log(...args);
     const worker = new NetworkedComputerWorker(0, onMessageSend);
     workers.push(worker);
     
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 150));
     
     expect(onMessageSend).toHaveBeenCalled();
-    expect(onMessageSend).toHaveBeenCalledTimes(6);
-    expect(onMessageSend).toHaveBeenCalledWith([13, 1987, 19669]);
-    expect(onMessageSend).toHaveBeenCalledWith([43, 81097, 19669]);
-    expect(onMessageSend).toHaveBeenCalledWith([43, 162194, 19669]);
-    expect(onMessageSend).toHaveBeenNthCalledWith(4, [36, 24671, 19669]);
-    expect(onMessageSend).toHaveBeenNthCalledWith(5, [36, 49342, 19669]);
-    expect(onMessageSend).toHaveBeenNthCalledWith(6, [36, 74013, 19669]);
+    expect(onMessageSend).toHaveBeenCalledWith(13, 1987, 19669);
+    expect(onMessageSend).toHaveBeenCalledWith(43, 81097, 19669);
+    expect(onMessageSend).toHaveBeenCalledWith(43, 162194, 19669);
   });
 
   test('worker 1', async () => {
@@ -47,10 +40,9 @@ describe('Networked Computer', () => {
     worker.sendMessage(89363, 2447);
     worker.sendMessage(268089, 1);
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 150));
     
     expect(onMessageSend).toHaveBeenCalled();
-    expect(onMessageSend).toHaveBeenCalledWith([43, 243291, -36705]);
+    expect(onMessageSend).toHaveBeenCalledWith(43, 243291, -36705);
   });
-
-})
+});

@@ -1,11 +1,5 @@
-const { NetworkedComputerWorker, NetworkedComputer, Network } = require('./networkedComputer');
-const { createStreamFromFile } = require('../lib/createStream');
-
-const filename = __dirname + '/input.txt';
+const { Network } = require('./network');
 const chalk = require('chalk');
-
-const { Worker, isMainThread, workerData } = require('worker_threads');
-const workerFilename = __dirname + '/ncWorker.js';
 
 if (require.main === module) {
   (async () => {
@@ -15,64 +9,64 @@ if (require.main === module) {
 
     } catch (ex) {
       console.error(ex);
+      process.exit();
     }
   })();
 }
 
 async function part1() {
-  console.log(chalk.yellowBright(`Part 1?`));
+  console.log(chalk.yellowBright(`Boot up all 50 computers and attach them to your network. `));
   let t0 = Date.now();
 
   let result = -1;
 
-  const workers = [];
+  const network = new Network(50);
+  // network.on('message',(fromAddr, toAddr, x, y) => {
+  //   console.log(fromAddr, '>', toAddr, '(', x, y, ')');
+  // });
+  await network.runToIdle();
 
-  const getMessageHandler = (fromAddr) => { 
-    const onMessage = ([toAddr, x, y]) => {
-      console.log(fromAddr, '>', toAddr, '(', x, y, ')');
+  result = network.natQueue[0];
 
-      if (toAddr === 255) {
-        result = [x, y];
-        return;
-      }
+  await network.kill();
 
-      // if (!workers[toAddr]) {
-      //   console.log('booting', toAddr);
-      //   workers[toAddr] = new NetworkedComputerWorker(toAddr, getMessageHandler(toAddr));
-      // }
-
-      workers[toAddr].sendMessage(x, y);
-    }
-    return onMessage;
-  }
-
-  for (let id = 0; id < 50; id ++) {
-    workers[id] = new NetworkedComputerWorker(id, getMessageHandler(id));
-  }
-
-  // Allow some time for the result to come out.
-  await new Promise(resolve => setTimeout(resolve, 5000));
-
-  console.log('Kill workers.');
-  // Kill all workers
-  const terminatingWorkers = workers.map((worker) => {
-    if (worker && worker.terminate) {
-      return worker.terminate();
-    }
-  });
-  await Promise.all(terminatingWorkers);
-  console.log('- terminated.');
-  
-  // let result = -1;
-  console.log('Part 1?', result, (result[1] === 17849) ? '🏆' : '❌');
+  console.log('What is the Y value of the first packet sent to address 255?', result, (result[1] === 17849) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }
 
 async function part2() {
-  console.log(chalk.yellowBright(`Part 2?`));
+  console.log(chalk.yellowBright(`Monitor packets released to the computer at address 0 by the NAT.`));
   let t0 = Date.now();
 
   let result = -1;
-  console.log('Part 2?', result, (result === 0) ? '🏆' : '❌');
+  let previous = [];
+  let seen = new Set();
+  let next = [];
+  let maxIterations = 10000;
+
+  const network = new Network(50);
+  
+  let i = 1;
+  while (maxIterations--) {
+    await network.runToIdle();
+
+    next = network.natQueue[network.natQueue.length -1];
+    if (!next) throw 'nothing next';
+    console.log(i++, ...next);
+    network.workers[0].sendMessage(next[0], next[1]);
+
+    if (seen.has(next[1])) {
+    // if (next[1] === previous[1]) {
+      result = next[1];
+      break;
+    }
+    seen.add(next[1]);
+    previous = next;
+  }
+
+  await network.kill();
+
+
+  console.log('What is the first Y value delivered by the NAT to the computer at address 0 twice in a row?', result, (result === 12235) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 }
