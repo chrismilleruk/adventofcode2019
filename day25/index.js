@@ -28,18 +28,29 @@ async function part1() {
     output: process.stdout
   });
 
-  const readLine = async () => {
-    return new Promise((resolve) => {
-      // rl.prompt();
-      rl.question('>', (answer) => {
-        rl.pause();
-        console.log(chalk.red(answer));
-        resolve(answer)
-      });
-    });
+  const readLine = async (state) => {
+    // console.log(state);
+
+    const choices = getChoices(state);
+    try {
+      const choice = await getChoice(choices, rl);
+      return choice.command();
+    } catch (ex) {
+      return new Promise((resolve) => {
+        rl.question('>', (answer) => {
+          rl.pause();
+          console.log(chalk.red(answer));
+          resolve(answer)
+        });
+      })
+    }
   }
 
-  let result = await game.interactiveMode(process.stdout, readLine);
+  const writeLine = (line, state, emoji = '') => {
+    console.log(emoji, line)
+  }
+
+  let result = await game.interactiveMode(writeLine, readLine);
 
   // let result = -1;
   console.log('Part 1?', result, (result === 0) ? '🏆' : '❌');
@@ -53,4 +64,51 @@ async function part2() {
   let result = -1;
   console.log('Part 2?', result, (result === 0) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
+}
+
+function getChoices(state) {
+  let choices = [];
+  // {title: '', command: () => ''}
+  // {
+  //   inv: [ 'sand' ],
+  //   room: 'Arcade',
+  //   items: [],
+  //   doors: [ 'north', 'south' ]
+  // }
+
+  for (const doorName of state.doors) {
+    choices.push({
+      title: `Go ${doorName}`, 
+      command: () => doorName
+    })
+  }
+
+  for (const itemName of state.items) {
+    choices.push({
+      title: `Take ${itemName}`, 
+      command: () => `take ${itemName}`
+    })
+  }
+
+  for (const itemName of state.inv) {
+    choices.push({
+      title: `Drop ${itemName}`, 
+      command: () => `drop ${itemName}`
+    })
+  }
+
+  const freetext = {
+    title: 'type command',
+    command: () => new Promise((resolve) => {
+      rl.question('>', (answer) => {
+        rl.pause();
+        console.log(chalk.red(answer));
+        resolve(answer)
+      });
+    })
+  }
+  choices.push(freetext);
+
+  return choices;
+
 }
