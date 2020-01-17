@@ -1,0 +1,55 @@
+Doors here lead:
+- north
+- east
+- south
+- west
+
+Items here:
+- ornament
+
+------------------------------------------------------------
+
+
+Items in your inventory:
+- asterisk
+- ornament
+- cake
+- space heater
+- festive hat
+- semiconductor
+- food ration
+- sand
+
+------------------------------------------------------------
+>take giant electromagnet
+take giant electromagnet
+
+You take the giant electromagnet.
+
+Command?
+>east
+east
+
+The giant electromagnet is stuck to you.  You can't move!!
+
+
+------------------------------------------------------------
+>take escape pod
+take escape pod
+
+You take the escape pod.
+
+You're launched into space! Bye!
+
+
+------------------------------------------------------------
+>take photons
+take photons
+
+You take the photons.
+
+It is suddenly completely dark! You are eaten by a Grue!
+
+
+------------------------------------------------------------
+------------------------------------------------------------

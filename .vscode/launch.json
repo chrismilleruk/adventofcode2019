@@ -7,11 +7,22 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Day 23",
+            "name": "Launch Day 25",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/day23/index.js"
+            "program": "${workspaceFolder}/day25/index.js",
+            "outputCapture": "std",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "node",
+            "request": "attach",
+            "name": "Attach",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            ""
         }
     ]
 }
