@@ -102,6 +102,7 @@ class AdventureGame extends EventEmitter {
       this.state.room = line.match(this.rxRoom)[1];
       this.state.items.length = 0;
       this.state.doors.length = 0;
+      this.emit('room', this.state.room, this.state);
       return '⭐️';
     }
     
@@ -164,11 +165,10 @@ class AdventureGame extends EventEmitter {
     return c;
   }
 
-  async interactiveMode(writeLine, readLine = this.getReadLineFn()) {
+  async interactiveMode(writeLine = this.getWriteLineFn(), readLine = this.getReadLineFn()) {
     this._panels = new Map();
     this._coord = [0, 0];
-    const panel = new Panel(this._coord[0], this._coord[1], 1);
-    this._panels.set(String(panel.coord), panel);
+    this._moveCoord = [0, 0];
 
     this.bindEvents();
 
@@ -197,14 +197,33 @@ class AdventureGame extends EventEmitter {
     const linesAsync = chunksToLines(charsAsync, false, false);
     for await (let line of linesAsync) {
       const interpretation = this.interpretLine(line);
+      if (interpretation === '🚪') {
+        await this.renderMap();
+      }
       outputs.push(line);
-      writeLine(line, this.state, interpretation);
+      writeLine(line, interpretation, this.state);
     }
 
     return this.state;
   }
 
   bindEvents() {
+    this.on('room', (roomName, state) => {
+      // When moving, we may get 'ejected' 
+      // Or 'You can't go that way'
+      // So don't create a panel until we land in the room.
+      if (this._panels.has(roomName)) {
+        this._coord = this._panels.get(roomName).coord;
+        return;
+      }
+      this._coord = this._moveCoord;
+      const panel = new Panel(this._coord[0], this._coord[1], 1);
+      panel.roomName = roomName;
+
+      this._panels.set(roomName, panel);
+      this._panels.set(String(panel.coord), panel);
+    });
+    
     this.on('door', (doorName, state) => {
       const coord = this.getRelCoord(doorName, 1);
       const panel = new Panel(coord[0], coord[1], 1);
@@ -213,10 +232,14 @@ class AdventureGame extends EventEmitter {
 
     this.on('move', (doorName, state) => {
       const coord = this.getRelCoord(doorName, 2);
-      const panel = new Panel(coord[0], coord[1], 1);
-      this._panels.set(String(panel.coord), panel);
-      this._coord = coord;
+      this._moveCoord = coord;
     })
+  }
+
+  getWriteLineFn() {
+    return (line, icon = '') => {
+      console.log(icon, line)
+    }
   }
 
   getReadLineFn() {
@@ -227,9 +250,6 @@ class AdventureGame extends EventEmitter {
     });
 
     const readLine = async (state) => {
-      // Render the map
-      await this.renderMap();
-
       const choices = this.getChoices(state, rl);
       try {
         const choice = await getChoice(choices, rl);

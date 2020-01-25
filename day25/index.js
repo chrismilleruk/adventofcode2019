@@ -23,11 +23,11 @@ async function part1() {
   //"Oh, hello! You should be able to get in by typing 25165890 on the keypad at the main airlock."
   const game = await AdventureGame.fromFile(filename);
   
-  const writeLine = (line, state, emoji = '') => {
+  const writeLine = (line, emoji = '', state) => {
     console.log(emoji, line)
   }
 
-  const result = await game.interactiveMode(writeLine);
+  const result = await game.interactiveMode();
 
   // Your puzzle answer was 25165890.
   console.log('Code for the main airlock.', result.airlockCode, (result.airlockCode === '25165890') ? '🏆' : '❌');
