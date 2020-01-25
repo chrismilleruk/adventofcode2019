@@ -107,7 +107,6 @@ describe('Bug Life', () => {
       count += 1;
     }
 
-    count;
     expect(emulator.biodiversityRating).toBe(2129920);
   })
 

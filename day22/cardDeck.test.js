@@ -75,7 +75,6 @@ describe('Slam Shuffle', () => {
     `);
     const shuffler = new Shuffler(10);
     let i = shuffler.shuffleIterator(linesAsync);
-    i;
     await shuffler.shuffle(linesAsync);
     expect(shuffler.deck.cards).toEqual([0, 3, 6, 9, 2, 5, 8, 1, 4, 7])
   })

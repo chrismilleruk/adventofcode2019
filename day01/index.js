@@ -4,7 +4,18 @@ const readline = require('readline');
 const filename = __dirname + '/day1input.txt';
 
 if (require.main === module) {
-  processInputFile(filename).then(fuel => console.log(fuel));
+  (async () => {
+    try {
+      console.log('What is the sum of the fuel requirements for all of the modules on your spacecraft?')
+      let fuel = await processInputFile(filename);
+      console.log(fuel);
+      console.log('What is the sum when also taking into account the mass of the added fuel?');
+      fuel = await processInputFile(filename, true);
+      console.log(fuel);
+    } catch (ex) {
+      console.error(ex);
+    }
+  })();
 }
 
 function calculateFuel(mass) {
