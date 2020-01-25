@@ -1,6 +1,5 @@
 const { FFT } = require('./fft')
 const { createStreamFromFile } = require('../lib/createStream');
-// const { preparePlotArea, plotPanelAsBlock } = require('../lib/render');
 
 const chalk = require('chalk');
 

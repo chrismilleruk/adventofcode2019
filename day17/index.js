@@ -24,9 +24,6 @@ if (require.main === module) {
       console.log('Sum of the alignment parameters', alignmentSum, (alignmentSum === 10064) ? '🏆' : '❌');
       console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));
 
-      // Render area
-      renderSingleView(robot.view);
-
       // Part 2
       console.log(chalk.yellowBright(`After visiting every part of the scaffold at least once, how much dust does the vacuum robot report it has collected?`));
       const instructions = robot.view.getInstructions();
@@ -114,8 +111,8 @@ function renderView(cursor, view, panelMap) {
 
   for (const panel of view.panels.values()) {
     // Draw Walls.
-    let color = { color: frame % 2 ? chalk.white : chalk.blue, value: 1 };
-    plotPanelAsBlock(cursor, panel, panelMap, { x: 0, y: 0 }, color);
+    let colorOpts = { colorFn: frame % 2 ? chalk.white : chalk.blue, when: 1 };
+    plotPanelAsBlock(cursor, panel, panelMap, { color: colorOpts });
   }
 
   // Draw Robot as Red.

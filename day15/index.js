@@ -23,19 +23,19 @@ if (require.main === module) {
       const blocks = new Map();
 
       // Draw Start as Red.
-      plotPanelAsBlock(cursor, startLocation, new Map(), { x: 0, y: 0 }, { color: chalk.redBright, value: Content.Empty });
+      plotPanelAsBlock(cursor, startLocation, new Map(), { color: { colorFn: chalk.redBright, when: Content.Empty } });
 
       for await (const evt of runRepairDroid(program, droid, 5000)) {
         // Draw Walls as Blue.
-        plotPanelAsBlock(cursor, evt.location, blocks, { x: 0, y: 0 }, { color: chalk.gray, value: Content.Wall });
+        plotPanelAsBlock(cursor, evt.location, blocks, { color: { colorFn: chalk.gray, when: Content.Wall } });
       }
 
       // Draw Start as Red.
-      plotPanelAsBlock(cursor, startLocation, new Map(), { x: 0, y: 0 }, { color: chalk.redBright, value: Content.Empty });
+      plotPanelAsBlock(cursor, startLocation, new Map(), { color: { colorFn: chalk.redBright, when: Content.Empty } });
 
       // Draw Oxygen System as Blue.
       const overlay = new Map();
-      plotPanelAsBlock(cursor, droid.oxygenSystem, overlay, { x: 0, y: 0 }, { color: chalk.blueBright, value: Content.OxygenSystem });
+      plotPanelAsBlock(cursor, droid.oxygenSystem, overlay, { color: { colorFn: chalk.blueBright, when: Content.OxygenSystem } });
 
       cursor.close('Finished?', droid.foundOxygenSystem);
 

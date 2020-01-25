@@ -105,27 +105,27 @@ class AdventureGame extends EventEmitter {
       this.emit('room', this.state.room, this.state);
       return '⭐️';
     }
-    
+
     if (this.rxDoors.test(line)) {
       this.state.doors.length = 0;
       this._currentList = this.state.doors;
       this._currentGetChar = this.getDoorChar;
       return '🚪';
     }
-    
+
     if (this.rxItems.test(line)) {
       this.state.items.length = 0;
       this._currentList = this.state.items;
       this._currentGetChar = this.getItemChar;
       return '🎲';
     }
-    
+
     if (this.rxInventory.test(line)) {
       this._currentList = this.state.inv;
       this._currentGetChar = this.getInvChar;
       return '💼';
     }
-    
+
     if (this.rxPressureTest.test(line)) {
       const result = line.match(this.rxPressureTest)[1];
       const attempt = {
@@ -135,7 +135,7 @@ class AdventureGame extends EventEmitter {
       this.state.attempts.push(attempt);
       return '🧪';
     }
-    
+
     if (this.rxAirlockCode.test(line)) {
       const result = line.match(this.rxAirlockCode)[1];
       this.state.airlockCode = result;
@@ -181,17 +181,17 @@ class AdventureGame extends EventEmitter {
         if (['north', 'south', 'east', 'west'].indexOf(line) > -1) {
           this.emit('move', line, this.state);
         }
-        
-        const chars = line.split('').map(s=>s.charCodeAt(0));
+
+        const chars = line.split('').map(s => s.charCodeAt(0));
         inputs = chars;
         inputs.push(10);
       }
       const input = inputs.shift();
-      
+
       return input;
     }
     const outputs = [];
-    
+
     const generator = executeProgramAsGenerator(this._program.slice(), inputFn);
     const charsAsync = charCodeToChar(generator);
     const linesAsync = chunksToLines(charsAsync, false, false);
@@ -223,7 +223,7 @@ class AdventureGame extends EventEmitter {
       this._panels.set(roomName, panel);
       this._panels.set(String(panel.coord), panel);
     });
-    
+
     this.on('door', (doorName, state) => {
       const coord = this.getRelCoord(doorName, 1);
       const panel = new Panel(coord[0], coord[1], 1);
@@ -280,7 +280,7 @@ class AdventureGame extends EventEmitter {
 
     for (const doorName of state.doors) {
       choices.push({
-        title: `Go ${doorName}`, 
+        title: `Go ${doorName}`,
         command: () => doorName,
         key: this.getDoorChar(doorName)
       })
@@ -288,7 +288,7 @@ class AdventureGame extends EventEmitter {
 
     for (const itemName of state.items) {
       choices.push({
-        title: `Take ${itemName}`, 
+        title: `Take ${itemName}`,
         command: () => `take ${itemName}`,
         key: this.getItemChar(itemName)
       })
@@ -296,7 +296,7 @@ class AdventureGame extends EventEmitter {
 
     for (const itemName of state.inv) {
       choices.push({
-        title: `Drop ${itemName}`, 
+        title: `Drop ${itemName}`,
         command: () => `drop ${itemName}`,
         key: this.getInvChar(itemName)
       })
@@ -347,20 +347,20 @@ class AdventureGame extends EventEmitter {
   }
 
   async renderMap() {
-    const { width, height, offset, halfWidth, halfHeight } = calculateMinMax(this._panels);
+    const { offset, halfWidth, halfHeight } = calculateMinMax(this._panels);
 
     // Draw box outline
     const renderer = preparePlotArea(process.stdout, halfWidth, halfHeight, YAXIS.TOP_TO_BOTTOM);
-    
+
     // Plot all panels
     const blocks = new Map();
 
     for (const panel of this._panels) {
-      plotPanelAsBlock(renderer, panel[1], blocks, offset);
+      plotPanelAsBlock(renderer, panel[1], blocks, { offset });
     }
 
     let panel = new Panel(this._coord[0], this._coord[1], 1);
-    plotPanelAsBlock(renderer, panel, blocks, offset, { color: chalk.red, value: 1 })
+    plotPanelAsBlock(renderer, panel, blocks, { offset, color: { colorFn: chalk.red, when: 1 } })
 
     renderer.close();
   }

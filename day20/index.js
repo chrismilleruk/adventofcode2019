@@ -57,13 +57,13 @@ async function part1() {
       }
 
       let panel = new Panel(meta.tile.x, meta.tile.y, 1)
-      plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0}, { color: chalk.blue, value: 1 });
+      plotPanelAsBlock(cursor, panel, panelMap, { color: { colorFn: chalk.blue, when: 1 }});
     }
     // panelMap.clear();
     for await (const tile of maze._aliases.values())
     {
       let panel = new Panel(tile.x, tile.y, 1)
-      plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0}, { color: chalk.red, value: 1 });
+      plotPanelAsBlock(cursor, panel, panelMap, { color: { colorFn: chalk.red, when: 1 }});
     }
   }
 
@@ -74,7 +74,7 @@ async function part1() {
     {
       let tile = maze.get(tileKey);
       let panel = new Panel(tile.x, tile.y, 1)
-      plotPanelAsBlock(cursor, panel, panelMap, { x:0, y:0 }, { color: chalk.yellow, value: 1 });
+      plotPanelAsBlock(cursor, panel, panelMap, { color: { colorFn: chalk.yellow, when: 1 }});
     }
   }
 

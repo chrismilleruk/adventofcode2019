@@ -1,5 +1,4 @@
 const { SpringDroid } = require('./springDroid');
-const { preparePlotArea, plotPanelAsBlock } = require('../lib/render');
 
 const filename = __dirname + '/input.txt';
 const readlineSync = require('readline-sync')

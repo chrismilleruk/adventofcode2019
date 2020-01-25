@@ -1,9 +1,7 @@
 const { LockedMazeRunner } = require('./lockedMazeRunner')
 const { createStreamFromFile } = require('../lib/createStream')
-// const { preparePlotArea, plotPanelAsBlock } = require('../lib/render');
 
 const filename = __dirname + '/input.txt';
-const readlineSync = require('readline-sync')
 const chalk = require('chalk');
 
 if (require.main === module) {
@@ -45,6 +43,7 @@ async function part2() {
   console.log(chalk.yellowBright(`After updating your map and using the remote-controlled robots, what is the fewest steps necessary to collect all of the keys?`));
   let t0 = Date.now();
 
+  let shortestDistance = Infinity;
   
   console.log('Fewest steps necessary', shortestDistance, (shortestDistance === -1) ? '🏆' : '❌');
   console.log(chalk.grey(`Time taken ${Date.now() - t0}ms`));

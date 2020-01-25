@@ -51,7 +51,7 @@ async function runPaintingRobotWithConfig(program, config) {
   if (DIRECT_RENDER_MODE && roomToRender) {
     const cursor = preparePlotArea(process.stdout, config.render.width, config.render.height, YAXIS.BOTTOM_TO_TOP);  
     const panelsAsync = paintingRobotEventGenerator(panels, program);
-    await plotPanels(cursor, panelsAsync, config.render.offset);
+    await plotPanels(cursor, panelsAsync, config.render.offset, YAXIS.BOTTOM_TO_TOP);
   
     cursor.close(Date.now() - t0, 'ms');
   
